@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Travel Care AI</title>
+    <style>
+      :root {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        color: #0f172a;
+        background: #f8fafc;
+      }
+      body {
+        margin: 0;
+        padding: 1rem;
+        max-width: 960px;
+        margin-inline: auto;
+      }
+      h1 {
+        font-size: 1.35rem;
+      }
+      .banner {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+      }
+      .emergency {
+        background: #fee2e2;
+        border-color: #ef4444;
+      }
+      label {
+        display: block;
+        font-weight: 600;
+        margin-top: 0.75rem;
+      }
+      textarea {
+        width: 100%;
+        min-height: 120px;
+        padding: 0.5rem;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        font: inherit;
+        box-sizing: border-box;
+      }
+      button {
+        margin-top: 0.75rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 8px;
+        border: none;
+        background: #0ea5e9;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button.secondary {
+        margin-left: 0.5rem;
+        background: #64748b;
+      }
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      #map {
+        height: 280px;
+        border-radius: 8px;
+        margin-top: 1rem;
+        border: 1px solid #cbd5e1;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+      .muted {
+        color: #64748b;
+        font-size: 0.85rem;
+      }
+      ul {
+        padding-left: 1.2rem;
+      }
+      code {
+        background: #f1f5f9;
+        padding: 0.1rem 0.35rem;
+        border-radius: 4px;
+      }
+      .results-grid {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 720px) {
+        .results-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .results-grid .span-2 {
+          grid-column: span 2;
+        }
+      }
+      .panel {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+        background: #f8fafc;
+      }
+      .panel h3 {
+        margin: 0 0 0.5rem;
+        font-size: 0.95rem;
+        color: #334155;
+      }
+      .panel p,
+      .panel li {
+        margin: 0.35rem 0;
+        font-size: 0.9rem;
+        line-height: 1.45;
+      }
+      .citations-raw {
+        margin-top: 0.65rem;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        padding: 0.35rem 0.65rem;
+        background: #fff;
+      }
+      .citations-raw > summary {
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.88rem;
+        color: #475569;
+      }
+      .citations-raw[open] > summary {
+        margin-bottom: 0.35rem;
+      }
+      .tag {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-right: 0.35rem;
+        margin-bottom: 0.35rem;
+      }
+      .tag-level {
+        background: #e0f2fe;
+        color: #0369a1;
+      }
+      .tag-warn {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      .tag-ok {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .chat-shell {
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 1rem;
+        background: #fff;
+      }
+      .chat-messages {
+        height: 280px;
+        overflow-y: auto;
+        padding: 0.75rem;
+        background: #f1f5f9;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+      }
+      .chat-bubble {
+        max-width: 88%;
+        padding: 0.55rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        line-height: 1.45;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .chat-bubble.user {
+        align-self: flex-end;
+        background: #0ea5e9;
+        color: #fff;
+        border-bottom-right-radius: 4px;
+      }
+      .chat-bubble.assistant {
+        align-self: flex-start;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-bottom-left-radius: 4px;
+      }
+      .chat-bubble .role {
+        font-size: 0.7rem;
+        font-weight: 700;
+        opacity: 0.75;
+        margin-bottom: 0.25rem;
+      }
+      .chat-bubble.assistant .chat-assistant-body {
+        white-space: normal;
+      }
+      .chat-bubble.assistant .chat-assistant-body.chat-plain {
+        white-space: pre-wrap;
+      }
+      .chat-bubble.assistant .chat-line {
+        margin: 0.35rem 0 0;
+        font-size: 0.9rem;
+        line-height: 1.45;
+      }
+      .chat-bubble.assistant .chat-line:first-child {
+        margin-top: 0;
+      }
+      .chat-bubble.assistant .chat-next-list {
+        margin: 0.4rem 0 0;
+        padding-left: 1.2rem;
+        font-size: 0.88rem;
+        line-height: 1.45;
+      }
+      .chat-bubble.assistant .chat-next-list li {
+        margin: 0.2rem 0;
+      }
+      .chat-contrast-details {
+        margin-top: 0.55rem;
+        padding: 0.35rem 0.5rem;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        font-size: 0.85rem;
+      }
+      .chat-contrast-details > summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: #475569;
+        list-style: none;
+      }
+      .chat-contrast-details > summary::-webkit-details-marker {
+        display: none;
+      }
+      .chat-contrast-ul {
+        margin: 0.4rem 0 0;
+        padding-left: 1.15rem;
+      }
+      .chat-contrast-ul li {
+        margin: 0.25rem 0;
+      }
+      .cost-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+        margin-top: 0.45rem;
+      }
+      .cost-table caption {
+        text-align: left;
+        font-weight: 600;
+        padding: 0.35rem 0 0.15rem;
+        color: #334155;
+      }
+      .cost-table th,
+      .cost-table td {
+        border: 1px solid #e2e8f0;
+        padding: 0.35rem 0.45rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      .cost-table th {
+        background: #f1f5f9;
+        font-weight: 600;
+      }
+      .treatment-radio-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.35rem;
+        margin: 0.35rem 0;
+        font-size: 0.88rem;
+        line-height: 1.4;
+      }
+      .treatment-radio-row input {
+        margin-top: 0.2rem;
+      }
+      .pharmacy-images img {
+        max-width: 140px;
+        max-height: 140px;
+        object-fit: contain;
+        margin: 0.35rem 0.5rem 0.35rem 0;
+        vertical-align: top;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+      }
+      .chat-input-row {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.65rem;
+        border-top: 1px solid #e2e8f0;
+        align-items: center;
+      }
+      .chat-input-row input {
+        flex: 1;
+        padding: 0.5rem 0.65rem;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        font: inherit;
+      }
+      .chat-input-row button {
+        margin-top: 0;
+      }
+      details.raw-details {
+        margin-top: 0.75rem;
+      }
+      details.raw-details summary {
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #64748b;
+      }
+      details.raw-details pre {
+        margin: 0.5rem 0 0;
+        font-size: 0.75rem;
+        overflow: auto;
+        max-height: 200px;
+      }
+      pre#llmPromptPre {
+        max-height: min(70vh, 520px);
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Travel Care AI (prototype)</h1>
+    <div id="statusBanner" class="banner">
+      Loading configuration…
+    </div>
+
+    <div class="card">
+      <label for="examplePrompt">Load a test example</label>
+      <select
+        id="examplePrompt"
+        style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1; font: inherit; box-sizing: border-box"
+      >
+        <option value="">— Choose an example —</option>
+        <option value="lisbon_mild">Lisbon — mild cold / pharmacy-type symptoms (single-turn)</option>
+        <option value="austin_fever">Austin, TX — fever after travel (multi-turn + map pin)</option>
+        <option value="berlin_emergency">Berlin — chest pain &amp; breathlessness (emergency pattern)</option>
+        <option value="paris_rash">Paris — itchy rash, mild (clinic vs pharmacy)</option>
+        <option value="taipei_zh">Taipei — 中文描述头痛疲劳 (zh + multi-turn)</option>
+        <option value="unsolvable_rx">London — asks for diagnosis + prescription (unsolvable-aware)</option>
+        <option value="tokyo_tools">Tokyo — heat + long walks (single-turn + internal RAG tools)</option>
+        <option value="nyc_china">
+          New York City — visitor from China, mild illness + how US/NYC care works (multi-turn + map pin)
+        </option>
+      </select>
+      <p class="muted" style="margin-top: 0.35rem">
+        Fills the symptom text, <strong>where you are</strong>, <strong>where you are from</strong>, map search, and
+        sometimes language / query strategy. Then click <strong>Get guidance</strong>.
+      </p>
+
+      <label for="lang">Your language (ISO-style code — the assistant reply is written in this language, e.g. zh, ja, en, es)</label>
+      <input
+        id="lang"
+        type="text"
+        value=""
+        placeholder="e.g. zh"
+        style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1"
+      />
+
+      <label for="queryStrategy">Query strategy</label>
+      <select
+        id="queryStrategy"
+        style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1; font: inherit; box-sizing: border-box"
+      >
+        <option value="single_turn">
+          Single-turn — one reply per request (no internal tool rounds on the server)
+        </option>
+        <option value="single_turn_tools">
+          Single-turn + internal tools — server runs extra retrieval without asking you between steps
+        </option>
+        <option value="multi_turn">
+          Multi-turn — model may ask for missing info; use chat for follow-up rounds
+        </option>
+        <option value="unsolvable">
+          Unsolvable-aware — model may abstain when context or policy does not allow a safe answer
+        </option>
+      </select>
+      <p id="strategyHint" class="muted" style="margin-top: 0.35rem"></p>
+
+      <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; font-weight: 600">
+        <input type="checkbox" id="researchTools" checked />
+        <span>Server-side research (Google Places + web search) before the answer</span>
+      </label>
+      <p id="researchToolsHint" class="muted" style="margin-top: 0.25rem">
+        Uses <code>GOOGLE_MAPS_SERVER_KEY</code> and <code>SERPER_API_KEY</code> on the server. The research step is
+        steered toward <strong>official local government / public-health pages</strong> for the trip location when
+        possible. Pin a location on the map (or set “Where you are”) so Places can run. Browser Maps key alone is not
+        enough for server Places.
+      </p>
+
+      <label for="tripLocation">Where you are (city, region, or country — optional)</label>
+      <input
+        id="tripLocation"
+        type="text"
+        value=""
+        placeholder="e.g. Lisbon, Portugal"
+        style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1"
+      />
+      <p class="muted" style="margin-top: 0.35rem">
+        Used for localized guidance. If empty, the server may use <code>DEFAULT_TRAVEL_LOCATION</code> from
+        <code>.env</code>, or stay location-agnostic. The map search below can also fill this when you pick a place.
+      </p>
+
+      <label for="homeCountry">Where you are from (home country or region — optional)</label>
+      <input
+        id="homeCountry"
+        type="text"
+        value=""
+        placeholder="e.g. United States, Ontario Canada, Germany"
+        style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1"
+      />
+      <p class="muted" style="margin-top: 0.35rem">
+        Helps compare how healthcare usually works <strong>where you are now</strong> versus what you may be used to
+        at home (access, referrals, payment, pharmacies, emergency norms). If empty, the server may use
+        <code>DEFAULT_HOME_COUNTRY</code> from <code>.env</code>.
+        <strong>Important:</strong> fill this field (or rely on that env default) — writing “I’m from …” only inside the
+        symptom box does <strong>not</strong> send <code>traveler_home_country</code> to the model, so it may still ask
+        where you are from.
+      </p>
+
+      <label for="msg">Describe what is happening (symptoms, when it started, severity)</label>
+      <textarea id="msg" placeholder="Example: Fever started two days after arrival; sore throat and fatigue."></textarea>
+      <button id="go" type="button">Get guidance</button>
+      <p class="muted">
+        This demo combines rule-based checks, simple retrieval over a tiny local corpus, and optional OpenAI
+        for wording — it is <strong>not</strong> medical advice.
+      </p>
+    </div>
+
+    <div id="out" class="card" hidden>
+      <h2 style="margin-top: 0; font-size: 1.1rem">Guidance</h2>
+      <div id="abstainBanner" class="banner emergency" hidden style="margin-top: 0.5rem"></div>
+
+      <div class="results-grid">
+        <div class="panel span-2" id="panelOverview">
+          <h3>Overview</h3>
+          <div id="panelOverviewBody"></div>
+        </div>
+
+        <div class="panel span-2" id="panelSummary">
+          <h3>Summary</h3>
+          <div id="panelSummaryBody"></div>
+        </div>
+
+        <div class="panel span-2" id="panelContrast">
+          <h3>Local healthcare vs your home system</h3>
+          <ul id="panelContrastBody"></ul>
+        </div>
+
+        <div class="panel" id="panelRules">
+          <h3>Rule checks</h3>
+          <ul id="panelRulesBody"></ul>
+        </div>
+
+        <div class="panel" id="panelCitations">
+          <h3>Retrieved snippets</h3>
+          <p id="panelCitationsIntro" class="muted"></p>
+          <div id="panelSourcesContextWrap">
+            <p class="muted" style="margin-top: 0.15rem; font-weight: 600">How this applies to your trip</p>
+            <ul id="panelSourcesContextBody"></ul>
+            <p id="panelSourcesContextFallback" class="muted" hidden></p>
+          </div>
+          <details id="panelCitationsRaw" class="citations-raw">
+            <summary>Raw corpus excerpts (server retrieval)</summary>
+            <ul id="panelCitationsBody"></ul>
+          </details>
+        </div>
+
+        <div class="panel span-2" id="panelNext">
+          <h3>What to do next</h3>
+          <ol id="panelNextBody"></ol>
+        </div>
+
+        <div class="panel span-2" id="panelTreatment">
+          <h3>Treatment options &amp; cost estimates</h3>
+          <p id="panelTreatmentHint" class="muted"></p>
+          <div id="panelTreatmentRadios"></div>
+          <button type="button" id="refineTreatmentCost" class="secondary" style="margin-top: 0.5rem">
+            Refine cost estimate for selected plan
+          </button>
+          <p id="panelCostUncertainty" class="muted" style="margin-top: 0.5rem"></p>
+          <div id="panelCostTables" style="margin-top: 0.5rem; overflow-x: auto"></div>
+        </div>
+
+        <div class="panel span-2" id="panelPharmacyOtc" hidden>
+          <h3>Pharmacy visit &amp; OTC orientation</h3>
+          <p id="panelPharmacyIntro" class="muted"></p>
+          <ul id="panelPharmacyTips"></ul>
+          <div id="panelOtcExamples"></div>
+          <div id="panelMedLinks"></div>
+          <div id="panelMedImages" class="pharmacy-images"></div>
+        </div>
+
+        <div class="panel span-2" id="panelQuestions">
+          <h3>Clarifying questions</h3>
+          <ul id="panelQuestionsBody"></ul>
+        </div>
+
+        <div class="panel span-2" id="panelDisclaimer">
+          <h3>Disclaimer</h3>
+          <p id="panelDisclaimerBody" class="muted" style="margin: 0"></p>
+        </div>
+      </div>
+
+      <div class="chat-shell" id="chatShell" hidden>
+        <div style="padding: 0.5rem 0.75rem 0; font-size: 0.85rem; font-weight: 600; color: #475569">
+          Ask follow-ups (uses the same assist API with chat history)
+        </div>
+        <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+        <div class="chat-input-row">
+          <input id="chatInput" type="text" placeholder="Type a follow-up question…" autocomplete="off" />
+          <button id="chatSend" type="button" class="secondary" style="margin-left: 0">Send</button>
+        </div>
+        <p id="chatHint" class="muted" style="margin: 0 0.75rem 0.65rem; font-size: 0.8rem"></p>
+      </div>
+
+      <details class="raw-details" id="llmPromptDetails" hidden>
+        <summary>LLM API request (system + user messages)</summary>
+        <pre id="llmPromptPre"></pre>
+      </details>
+
+      <details class="raw-details">
+        <summary>Raw JSON response</summary>
+        <pre id="json"></pre>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top: 0; font-size: 1.1rem">Nearby (Google Places)</h2>
+      <p class="muted">
+        Enter where you are (or use device location). Only that place query goes to Google for the map —
+        symptom text from above is <strong>not</strong> sent to Google. Geocoding needs the
+        <strong>Geocoding API</strong> enabled for your Maps key.
+      </p>
+      <label for="placeQuery" style="margin-top: 0">Your location (address, area, or landmark)</label>
+      <input
+        id="placeQuery"
+        type="text"
+        placeholder="e.g. 10 Downing Street, London"
+        style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box"
+      />
+      <button id="placeGo" type="button">Show on map &amp; nearby hospitals</button>
+      <button id="useGps" type="button" class="secondary">Use my current location</button>
+      <div id="map"></div>
+      <ul id="places"></ul>
+    </div>
+
+    <script>
+      (function initLangDefault() {
+        const el = document.getElementById("lang");
+        if (el && !el.value.trim()) {
+          el.value = (typeof navigator !== "undefined" && navigator.language
+            ? navigator.language.split("-")[0]
+            : "en");
+        }
+      })();
+
+      const banner = document.getElementById("statusBanner");
+      const out = document.getElementById("out");
+      const jsonEl = document.getElementById("json");
+      const goBtn = document.getElementById("go");
+      const abstainBanner = document.getElementById("abstainBanner");
+
+      function syncStrategyHint() {
+        const sel = document.getElementById("queryStrategy");
+        const hint = document.getElementById("strategyHint");
+        if (!sel || !hint) return;
+        const m = {
+          single_turn:
+            "One self-contained reply per request. Follow-up chat is optional and not required by this mode.",
+          single_turn_tools:
+            "The server runs an extra internal step: the model proposes search phrases, then retrieval is merged before the main answer — you are not asked between those steps.",
+          multi_turn:
+            "The model is steered to ask for missing information when helpful; use the chat box for multi-round dialogue.",
+          unsolvable:
+            "The model may set abstain when required tools or information are missing or the request is out of scope.",
+        };
+        hint.textContent = m[sel.value] || "";
+      }
+      document.getElementById("queryStrategy").addEventListener("change", syncStrategyHint);
+      syncStrategyHint();
+
+      const chatShell = document.getElementById("chatShell");
+      const chatMessages = document.getElementById("chatMessages");
+      const chatInput = document.getElementById("chatInput");
+      const chatSend = document.getElementById("chatSend");
+      const chatHint = document.getElementById("chatHint");
+
+      let apiOpenAiConfigured = false;
+      let sessionMessage = "";
+      let sessionChatHistory = [];
+
+      let map;
+      let service;
+      let geocoder;
+      let locationMarker = null;
+      let googleMapsKey = "";
+      let lastMapLat = null;
+      let lastMapLng = null;
+      /** Echoed to server when refining costs ({id, title} from last assist). */
+      let lastTreatmentPlanOptions = [];
+
+      const EXAMPLE_SCENARIOS = {
+        lisbon_mild: {
+          message:
+            "I landed three days ago. Runny nose, sore throat, mild cough, no high fever. Tired walking uphill. No trouble breathing.",
+          tripLocation: "Lisbon, Portugal",
+          homeCountry: "United Kingdom",
+          placeQuery: "Rua Garrett 75, 1200-069 Lisboa, Portugal",
+          lang: "en",
+          queryStrategy: "single_turn",
+          lat: 38.7109,
+          lng: -9.1432,
+        },
+        austin_fever: {
+          message:
+            "Conference trip. Fever around 38–38.5°C since yesterday, sore throat, body aches. I can drink fluids and walk. Started about 36 hours ago.",
+          tripLocation: "Austin, TX, USA",
+          homeCountry: "México",
+          placeQuery: "1100 Congress Ave, Austin, TX 78701, USA",
+          lang: "en",
+          queryStrategy: "multi_turn",
+          lat: 30.2747,
+          lng: -97.7404,
+        },
+        berlin_emergency: {
+          message:
+            "Sudden chest pressure for ~20 minutes, pain into the left arm, and I'm short of breath. Anxious and sweaty.",
+          tripLocation: "Berlin, Germany",
+          homeCountry: "Canada",
+          placeQuery: "Friedrichstraße 124, 10117 Berlin, Germany",
+          lang: "en",
+          queryStrategy: "single_turn",
+          lat: 52.5208,
+          lng: 13.389,
+        },
+        paris_rash: {
+          message:
+            "Mild itchy rash on forearms after new sunscreen yesterday. No fever, no lip swelling. Otherwise fine.",
+          tripLocation: "Paris, France",
+          homeCountry: "Japan",
+          placeQuery: "10 Rue de Rivoli, 75004 Paris, France",
+          lang: "en",
+          queryStrategy: "multi_turn",
+          lat: 48.8575,
+          lng: 2.3521,
+        },
+        taipei_zh: {
+          message:
+            "到台北两天了，昨天开始持续的头痛和疲倦，有一点喉咙痛，体温大概37.8度。没有胸痛或呼吸困难。",
+          tripLocation: "台北市, 台湾",
+          homeCountry: "中国大陆",
+          placeQuery: "No. 7, Section 5, Xinyi Road, Xinyi District, Taipei 110",
+          lang: "zh",
+          queryStrategy: "multi_turn",
+          lat: 25.034,
+          lng: 121.5654,
+        },
+        unsolvable_rx: {
+          message:
+            "Please give me a definite diagnosis for my rash and prescribe antibiotics I can buy here without seeing a doctor.",
+          tripLocation: "London, United Kingdom",
+          homeCountry: "United States",
+          placeQuery: "221B Baker Street, London NW1 6XE, United Kingdom",
+          lang: "en",
+          queryStrategy: "unsolvable",
+          lat: 51.5238,
+          lng: -0.1585,
+        },
+        tokyo_tools: {
+          message:
+            "Jet-lagged, walked ~12 km today in summer heat. Headache, nausea, feel dehydrated. No chest pain or confusion.",
+          tripLocation: "Tokyo, Japan",
+          homeCountry: "Australia",
+          placeQuery: "2-8-1 Nishi-Shinjuku, Shinjuku City, Tokyo 160-0023, Japan",
+          lang: "en",
+          queryStrategy: "single_turn_tools",
+          lat: 35.6852,
+          lng: 139.6934,
+        },
+        nyc_china: {
+          message:
+            "我在纽约旅游第四天。昨天开始喉咙痛、流鼻涕、低烧大概37.8°C，有点怕冷，没有胸痛或呼吸困难。我在国内习惯先去社区医院或校医院，不太清楚这里该不该去急诊、怎么找诊所、费用会不会很高。想先了解一下纽约这边的医疗体系大概怎么运作。",
+          tripLocation: "New York, NY, USA",
+          homeCountry: "China",
+          placeQuery: "350 5th Ave, New York, NY 10118, USA",
+          lang: "zh",
+          queryStrategy: "multi_turn",
+          lat: 40.7484,
+          lng: -73.9857,
+        },
+      };
+
+      function applyExampleScenario(id) {
+        const msg = document.getElementById("msg");
+        const trip = document.getElementById("tripLocation");
+        const home = document.getElementById("homeCountry");
+        const place = document.getElementById("placeQuery");
+        if (!msg || !trip || !home || !place) return;
+
+        if (!id || !EXAMPLE_SCENARIOS[id]) {
+          msg.value = "";
+          trip.value = "";
+          home.value = "";
+          place.value = "";
+          lastMapLat = null;
+          lastMapLng = null;
+          return;
+        }
+
+        const x = EXAMPLE_SCENARIOS[id];
+        msg.value = x.message;
+        trip.value = x.tripLocation;
+        home.value = x.homeCountry;
+        place.value = x.placeQuery;
+        const langEl = document.getElementById("lang");
+        if (langEl && x.lang) langEl.value = x.lang;
+        const stratEl = document.getElementById("queryStrategy");
+        if (stratEl && x.queryStrategy) {
+          stratEl.value = x.queryStrategy;
+          syncStrategyHint();
+        }
+        lastMapLat = x.lat != null ? x.lat : null;
+        lastMapLng = x.lng != null ? x.lng : null;
+        if (map && typeof google !== "undefined" && x.lat != null && x.lng != null) {
+          applyMapLocation({ lat: x.lat, lng: x.lng }, x.tripLocation);
+        }
+      }
+
+      document.getElementById("examplePrompt").addEventListener("change", (e) => {
+        applyExampleScenario(e.target.value);
+      });
+
+      async function refreshApiFlags() {
+        const r = await fetch("/api/public-config");
+        const cfg = await r.json();
+        apiOpenAiConfigured = !!cfg.openAiConfigured;
+        return cfg;
+      }
+
+      async function loadConfig() {
+        const r = await fetch("/api/public-config");
+        const cfg = await r.json();
+        googleMapsKey = cfg.googleMapsApiKey || "";
+        apiOpenAiConfigured = !!cfg.openAiConfigured;
+        const rt = document.getElementById("researchTools");
+        const rth = document.getElementById("researchToolsHint");
+        if (rt) {
+          if (cfg.researchToolsAllowedByEnv === false) {
+            rt.checked = false;
+            rt.disabled = true;
+            if (rth) rth.textContent = "Research tools are disabled via DISABLE_RESEARCH_TOOLS on the server.";
+          } else {
+            rt.disabled = false;
+            if (rth && !rth.dataset.userEdited) {
+              const ps = cfg.placesServerConfigured ? "Places server key: yes" : "Places server key: no";
+              const ws = cfg.webSearchConfigured ? "Web search: yes" : "Web search: no";
+              rth.textContent = `${ps}; ${ws}. Pin a map location (or set “Where you are”) for nearby Places results.`;
+            }
+          }
+        }
+        if (!cfg.mapsEnabled) {
+          banner.textContent =
+            "Maps disabled: set GOOGLE_MAPS_API_KEY in .env and restart the server. Assist API still works.";
+        } else {
+          banner.classList.remove("emergency");
+          banner.textContent =
+            "Use your destination’s official emergency numbers for urgent medical issues. This tool does not replace emergency services.";
+        }
+        const tripEl = document.getElementById("tripLocation");
+        if (tripEl && !tripEl.value.trim() && cfg.defaultTravelLocation) {
+          tripEl.value = cfg.defaultTravelLocation;
+        }
+        const homeEl = document.getElementById("homeCountry");
+        if (homeEl && !homeEl.value.trim() && cfg.defaultHomeCountry) {
+          homeEl.value = cfg.defaultHomeCountry;
+        }
+        return cfg;
+      }
+
+      function loadScript(src) {
+        return new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = src;
+          s.async = true;
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+
+      async function initMap() {
+        if (!googleMapsKey) return;
+        await loadScript(
+          `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
+            googleMapsKey
+          )}&libraries=places`
+        );
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: 20, lng: 0 },
+          zoom: 2,
+        });
+        service = new google.maps.places.PlacesService(map);
+        geocoder = new google.maps.Geocoder();
+      }
+
+      function applyMapLocation(pos, title) {
+        if (!map) return;
+        lastMapLat = typeof pos.lat === "function" ? pos.lat() : pos.lat;
+        lastMapLng = typeof pos.lng === "function" ? pos.lng() : pos.lng;
+        map.setCenter(pos);
+        map.setZoom(15);
+        if (locationMarker) locationMarker.setMap(null);
+        locationMarker = new google.maps.Marker({
+          position: pos,
+          map,
+          title: title || "Your location",
+        });
+        nearbyHospitals(pos);
+      }
+
+      function nearbyHospitals(pos) {
+        if (!service) return;
+        const req = {
+          location: pos,
+          rankBy: google.maps.places.RankBy.DISTANCE,
+          type: "hospital",
+        };
+        const list = document.getElementById("places");
+        list.innerHTML = "";
+        service.nearbySearch(req, (results, status) => {
+          if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
+            list.innerHTML = `<li class="muted">No results (${status})</li>`;
+            return;
+          }
+          results.slice(0, 6).forEach((p) => {
+            const li = document.createElement("li");
+            li.textContent = `${p.name} — ${p.vicinity || ""}`;
+            list.appendChild(li);
+          });
+        });
+      }
+
+      function geocodePlace(query) {
+        const list = document.getElementById("places");
+        const q = (query || "").trim();
+        if (!q) {
+          list.innerHTML = `<li class="muted">Enter a place or address above.</li>`;
+          return;
+        }
+        if (!geocoder || !map) return;
+        geocoder.geocode({ address: q }, (results, status) => {
+          if (status !== "OK" || !results || !results[0]) {
+            list.innerHTML = `<li class="muted">Could not find that place (${status}). Try a fuller address or landmark name.</li>`;
+            return;
+          }
+          const loc = results[0].geometry.location;
+          const pos = { lat: loc.lat(), lng: loc.lng() };
+          const label = results[0].formatted_address || q;
+          applyMapLocation(pos, label);
+          const tripEl = document.getElementById("tripLocation");
+          if (tripEl && !tripEl.value.trim()) tripEl.value = label;
+        });
+      }
+
+      document.getElementById("placeGo").addEventListener("click", () => {
+        geocodePlace(document.getElementById("placeQuery").value);
+      });
+      document.getElementById("placeQuery").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          geocodePlace(document.getElementById("placeQuery").value);
+        }
+      });
+
+      document.getElementById("useGps").addEventListener("click", () => {
+        const list = document.getElementById("places");
+        if (!map) return;
+        if (!("geolocation" in navigator)) {
+          list.innerHTML = `<li class="muted">Geolocation is not available in this browser.</li>`;
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            applyMapLocation(c, "You (device location)");
+            const tripEl = document.getElementById("tripLocation");
+            if (tripEl && !tripEl.value.trim()) {
+              tripEl.value = `${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`;
+            }
+          },
+          () => {
+            list.innerHTML = `<li class="muted">Location permission denied or unavailable. Enter a place above instead.</li>`;
+          }
+        );
+      });
+
+      function assistTravelLocation() {
+        const trip = document.getElementById("tripLocation").value.trim();
+        const place = document.getElementById("placeQuery").value.trim();
+        return trip || place || "";
+      }
+
+      function assistLanguage() {
+        return (
+          document.getElementById("lang").value.trim() ||
+          (navigator.language ? navigator.language.split("-")[0] : "en")
+        );
+      }
+
+      function el(tag, className, text) {
+        const n = document.createElement(tag);
+        if (className) n.className = className;
+        if (text != null) n.textContent = text;
+        return n;
+      }
+
+      function appendChatBubble(role, text) {
+        const wrap = document.createElement("div");
+        wrap.className = "chat-bubble " + (role === "user" ? "user" : "assistant");
+        const lab = el("div", "role", role === "user" ? "You" : "Assistant");
+        const body = el("div", role === "assistant" ? "chat-assistant-body chat-plain" : "", text);
+        wrap.appendChild(lab);
+        wrap.appendChild(body);
+        chatMessages.appendChild(wrap);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      /** Rich assistant bubble: contrast is in a closed-by-default details element. History still uses assistantTurnPlainText. */
+      function appendAssistantChatBubble(data) {
+        const wrap = document.createElement("div");
+        wrap.className = "chat-bubble assistant";
+        wrap.appendChild(el("div", "role", "Assistant"));
+        const main = document.createElement("div");
+        main.className = "chat-assistant-body";
+        const llm = data.llm;
+        if (!llm) {
+          main.classList.add("chat-plain");
+          main.textContent = assistantTurnPlainText(data);
+          wrap.appendChild(main);
+          chatMessages.appendChild(wrap);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+          return;
+        }
+        if (llm.abstain && llm.abstention_reason) {
+          const p = el("p", "chat-line", "Abstention: " + String(llm.abstention_reason));
+          main.appendChild(p);
+        }
+        if (llm.summary_for_traveler) {
+          main.appendChild(el("p", "chat-line", String(llm.summary_for_traveler)));
+        }
+        const next = Array.isArray(llm.what_to_do_next) ? llm.what_to_do_next : [];
+        if (next.length) {
+          const ol = document.createElement("ol");
+          ol.className = "chat-next-list";
+          next.forEach((s) => {
+            const li = document.createElement("li");
+            li.textContent = s;
+            ol.appendChild(li);
+          });
+          main.appendChild(ol);
+        }
+        const contrast = Array.isArray(llm.healthcare_system_contrast) ? llm.healthcare_system_contrast : [];
+        if (contrast.length) {
+          const det = document.createElement("details");
+          det.className = "chat-contrast-details";
+          const sum = document.createElement("summary");
+          sum.textContent = "Healthcare system contrast";
+          det.appendChild(sum);
+          const ul = document.createElement("ul");
+          ul.className = "chat-contrast-ul";
+          contrast.forEach((s) => ul.appendChild(el("li", "", s)));
+          det.appendChild(ul);
+          main.appendChild(det);
+        }
+        if (!main.childNodes.length) {
+          main.classList.add("chat-plain");
+          main.textContent = assistantTurnPlainText(data);
+        }
+        wrap.appendChild(main);
+        chatMessages.appendChild(wrap);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function assistantTurnPlainText(data) {
+        if (data.llm) {
+          const bits = [];
+          if (data.llm.abstain && data.llm.abstention_reason) {
+            bits.push("Abstention: " + String(data.llm.abstention_reason));
+          }
+          if (data.llm.summary_for_traveler) bits.push(String(data.llm.summary_for_traveler));
+          if (Array.isArray(data.llm.what_to_do_next) && data.llm.what_to_do_next.length) {
+            bits.push(data.llm.what_to_do_next.map((s, i) => `${i + 1}. ${s}`).join("\n"));
+          }
+          if (Array.isArray(data.llm.healthcare_system_contrast) && data.llm.healthcare_system_contrast.length) {
+            bits.push(
+              "Healthcare system contrast:\n" +
+                data.llm.healthcare_system_contrast.map((s, i) => `${i + 1}. ${s}`).join("\n")
+            );
+          }
+          const tpo = data.llm.treatment_plan_options;
+          if (Array.isArray(tpo) && tpo.length) {
+            bits.push("Treatment options: " + tpo.map((p) => `${p.id}: ${p.title}`).join("; "));
+          }
+          const ct = data.llm.cost_estimate_table;
+          if (Array.isArray(ct) && ct.length) {
+            bits.push(
+              "Cost estimates (indicative, not quotes): " +
+                ct
+                  .map((c) => {
+                    const cur = c.currency || "";
+                    const lo = c.total_low != null ? c.total_low : "?";
+                    const hi = c.total_high != null ? c.total_high : "?";
+                    return `${c.plan_id || ""} (${cur} ~${lo}–${hi})`;
+                  })
+                  .join(" | ")
+            );
+          }
+          if (data.llm.cost_uncertainty_note) bits.push(String(data.llm.cost_uncertainty_note));
+          const pvt = data.llm.pharmacy_visit_tips;
+          if (Array.isArray(pvt) && pvt.length) {
+            bits.push("Pharmacy tips: " + pvt.join(" "));
+          }
+          const oex = data.llm.otc_medication_examples;
+          if (Array.isArray(oex) && oex.length) {
+            bits.push(
+              "OTC (educational): " +
+                oex.map((r) => (r.ingredient_or_class ? r.ingredient_or_class + " — " + (r.ask_pharmacist_note || "") : "")).join(" | ")
+            );
+          }
+          if (bits.length) return bits.join("\n\n");
+        }
+        const r = data.rule_rationale;
+        if (Array.isArray(r) && r.length) return r.join("\n\n");
+        return "(No assistant wording returned — check OpenAI configuration or raw JSON.)";
+      }
+
+      function clearNode(n) {
+        while (n.firstChild) n.removeChild(n.firstChild);
+      }
+
+      function formatCostAmount(n) {
+        if (n == null || n === "" || Number.isNaN(Number(n))) return "—";
+        return Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+      }
+
+      function renderTreatmentCostPanel(data) {
+        const hint = document.getElementById("panelTreatmentHint");
+        const radios = document.getElementById("panelTreatmentRadios");
+        const unc = document.getElementById("panelCostUncertainty");
+        const tables = document.getElementById("panelCostTables");
+        const refineBtn = document.getElementById("refineTreatmentCost");
+        if (!radios || !tables || !hint || !unc) return;
+        clearNode(radios);
+        clearNode(tables);
+        unc.textContent = "";
+        const llm = data.llm;
+        if (!llm) {
+          hint.textContent =
+            "No LLM block — configure OpenAI for treatment paths and indicative cost tables.";
+          if (refineBtn) refineBtn.disabled = true;
+          lastTreatmentPlanOptions = [];
+          return;
+        }
+        const opts = Array.isArray(llm.treatment_plan_options) ? llm.treatment_plan_options : [];
+        const costs = Array.isArray(llm.cost_estimate_table) ? llm.cost_estimate_table : [];
+        lastTreatmentPlanOptions = opts
+          .map((p) => ({ id: String(p.id || ""), title: String(p.title || "") }))
+          .filter((p) => p.id);
+        hint.textContent =
+          opts.length === 0
+            ? "No treatment options in this response."
+            : "Pick a plan, then Refine for a more detailed line-item table (still educational — not a binding quote). With server research + map pin, costs lean on web/Places signals; plain single-turn uses broad heuristics.";
+
+        opts.forEach((p, idx) => {
+          const row = el("div", "treatment-radio-row");
+          const inp = document.createElement("input");
+          inp.type = "radio";
+          inp.name = "treatmentPlanPick";
+          inp.value = String(p.id || "");
+          inp.id = "tpick_" + idx;
+          if (idx === 0) inp.checked = true;
+          const lab = document.createElement("label");
+          lab.htmlFor = inp.id;
+          lab.style.fontWeight = "600";
+          lab.textContent = p.title || p.id || "Option";
+          const wrap = el("div", "");
+          wrap.appendChild(lab);
+          if (p.description) wrap.appendChild(el("div", "muted", p.description));
+          row.appendChild(inp);
+          row.appendChild(wrap);
+          radios.appendChild(row);
+        });
+
+        costs.forEach((block) => {
+          const tbl = document.createElement("table");
+          tbl.className = "cost-table";
+          const cap = document.createElement("caption");
+          cap.textContent =
+            (block.plan_title || block.plan_id || "Plan") + (block.currency ? " · " + block.currency : "");
+          tbl.appendChild(cap);
+          const thead = document.createElement("thead");
+          const trh = document.createElement("tr");
+          ["Item", "Low", "High", "Notes"].forEach((h) => trh.appendChild(el("th", "", h)));
+          thead.appendChild(trh);
+          tbl.appendChild(thead);
+          const tb = document.createElement("tbody");
+          const rows = block.rows || [];
+          if (rows.length) {
+            rows.forEach((r) => {
+              const tr = document.createElement("tr");
+              tr.appendChild(el("td", "", r.item || ""));
+              tr.appendChild(el("td", "", formatCostAmount(r.low_amount)));
+              tr.appendChild(el("td", "", formatCostAmount(r.high_amount)));
+              tr.appendChild(el("td", "muted", r.notes || ""));
+              tb.appendChild(tr);
+            });
+          } else {
+            const tr = document.createElement("tr");
+            const td = document.createElement("td");
+            td.colSpan = 4;
+            td.className = "muted";
+            td.textContent = "No line items";
+            tr.appendChild(td);
+            tb.appendChild(tr);
+          }
+          tbl.appendChild(tb);
+          if (block.total_low != null || block.total_high != null) {
+            const tf = document.createElement("tfoot");
+            const tfr = document.createElement("tr");
+            const tfd = document.createElement("td");
+            tfd.colSpan = 4;
+            tfd.className = "muted";
+            tfd.textContent =
+              "Indicative total range: " +
+              formatCostAmount(block.total_low) +
+              " – " +
+              formatCostAmount(block.total_high) +
+              (block.currency ? " " + block.currency : "");
+            tfr.appendChild(tfd);
+            tf.appendChild(tfr);
+            tbl.appendChild(tf);
+          }
+          tables.appendChild(tbl);
+        });
+
+        unc.textContent = llm.cost_uncertainty_note || "";
+        if (refineBtn) refineBtn.disabled = opts.length === 0 || !sessionMessage.trim();
+      }
+
+      function renderPharmacyOtcPanel(data) {
+        const panel = document.getElementById("panelPharmacyOtc");
+        const intro = document.getElementById("panelPharmacyIntro");
+        const tips = document.getElementById("panelPharmacyTips");
+        const otc = document.getElementById("panelOtcExamples");
+        const links = document.getElementById("panelMedLinks");
+        const imgs = document.getElementById("panelMedImages");
+        if (!panel || !tips || !otc || !links || !imgs) return;
+        clearNode(tips);
+        clearNode(otc);
+        clearNode(links);
+        clearNode(imgs);
+        const llm = data.llm;
+        const pt = (llm && llm.pharmacy_visit_tips) || [];
+        const ex = (llm && llm.otc_medication_examples) || [];
+        const ml = (llm && llm.medication_reference_links) || [];
+        const mi = (llm && llm.medication_reference_images) || [];
+        if (!llm || (!pt.length && !ex.length && !ml.length && !mi.length)) {
+          panel.hidden = true;
+          return;
+        }
+        panel.hidden = false;
+        if (intro) {
+          intro.textContent =
+            "Educational only — not medical advice. No dosing on this screen; confirm with a pharmacist or clinician. " +
+            "Ingredient and brand mentions are for recognition, not a recommendation to buy or use a specific product.";
+        }
+        pt.forEach((t) => tips.appendChild(el("li", "", t)));
+        ex.forEach((row) => {
+          const box = document.createElement("div");
+          box.style.marginTop = "0.5rem";
+          if (row.ingredient_or_class) box.appendChild(el("strong", "", row.ingredient_or_class));
+          if (row.why_mentioned) box.appendChild(el("p", "muted", row.why_mentioned));
+          if (row.ask_pharmacist_note) box.appendChild(el("p", "", row.ask_pharmacist_note));
+          if (row.brand_examples_nonbinding) {
+            box.appendChild(el("p", "muted", "Examples (non-binding): " + row.brand_examples_nonbinding));
+          }
+          otc.appendChild(box);
+        });
+        if (ml.length) {
+          const h = el("p", "", "Reference links");
+          h.style.fontWeight = "600";
+          h.style.marginTop = "0.65rem";
+          links.appendChild(h);
+          ml.forEach((L) => {
+            const p = document.createElement("p");
+            p.style.margin = "0.25rem 0";
+            const a = document.createElement("a");
+            a.href = L.url;
+            a.rel = "noopener noreferrer";
+            a.target = "_blank";
+            a.textContent = L.title || L.url;
+            p.appendChild(a);
+            links.appendChild(p);
+          });
+        }
+        if (mi.length) {
+          const h = el("p", "", "Images (URLs from research only)");
+          h.style.fontWeight = "600";
+          h.style.marginTop = "0.65rem";
+          imgs.appendChild(h);
+          mi.forEach((im) => {
+            const fig = document.createElement("figure");
+            fig.style.display = "inline-block";
+            fig.style.margin = "0.25rem 0.5rem 0 0";
+            fig.style.maxWidth = "160px";
+            fig.style.verticalAlign = "top";
+            const img = document.createElement("img");
+            img.src = im.url;
+            img.alt = im.caption || "Reference";
+            img.loading = "lazy";
+            fig.appendChild(img);
+            if (im.caption) {
+              const fc = el("figcaption", "muted", im.caption);
+              fc.style.fontSize = "0.75rem";
+              fc.style.marginTop = "0.2rem";
+              fig.appendChild(fc);
+            }
+            imgs.appendChild(fig);
+          });
+        }
+      }
+
+      function renderAssistResponse(data) {
+        const abstainEl = document.getElementById("abstainBanner");
+        if (data.llm && data.llm.abstain === true && data.llm.abstention_reason) {
+          abstainEl.hidden = false;
+          abstainEl.textContent = "Limited answer / abstention: " + data.llm.abstention_reason;
+        } else {
+          abstainEl.hidden = true;
+          abstainEl.textContent = "";
+        }
+
+        const ov = document.getElementById("panelOverviewBody");
+        const sm = document.getElementById("panelSummaryBody");
+        const cx = document.getElementById("panelContrastBody");
+        const rb = document.getElementById("panelRulesBody");
+        const cb = document.getElementById("panelCitationsBody");
+        const citIntro = document.getElementById("panelCitationsIntro");
+        const scBody = document.getElementById("panelSourcesContextBody");
+        const scFb = document.getElementById("panelSourcesContextFallback");
+        const rawDetails = document.getElementById("panelCitationsRaw");
+        const nb = document.getElementById("panelNextBody");
+        const qb = document.getElementById("panelQuestionsBody");
+        const db = document.getElementById("panelDisclaimerBody");
+
+        clearNode(ov);
+        clearNode(sm);
+        clearNode(cx);
+        clearNode(rb);
+        clearNode(cb);
+        if (scBody) {
+          clearNode(scBody);
+          scBody.hidden = false;
+        }
+        if (scFb) {
+          scFb.textContent = "";
+          scFb.hidden = true;
+        }
+        clearNode(nb);
+        clearNode(qb);
+        db.textContent = "";
+
+        const loc = data.travel_location || data.locale || "Unspecified";
+        const level = data.care_level || "—";
+        const emerg = !!data.emergency;
+
+        const tags = el("div", "");
+        tags.appendChild(el("span", "tag tag-level", "Care: " + level));
+        tags.appendChild(
+          el("span", emerg ? "tag tag-warn" : "tag tag-ok", emerg ? "Emergency pattern: yes" : "Emergency pattern: no")
+        );
+        const strat = data.query_strategy || "single_turn";
+        tags.appendChild(el("span", "tag tag-level", "Strategy: " + strat));
+        ov.appendChild(tags);
+        ov.appendChild(el("p", "muted", "Where you are (trip): " + loc));
+        ov.appendChild(
+          el(
+            "p",
+            "muted",
+            "Home (comparison): " + (data.home_country || "Not specified — add above for sharper contrast.")
+          )
+        );
+        if (data.map_coordinates_used && data.map_coordinates_used.latitude != null) {
+          ov.appendChild(
+            el(
+              "p",
+              "muted",
+              "Map coordinates sent to server: " +
+                data.map_coordinates_used.latitude +
+                ", " +
+                data.map_coordinates_used.longitude +
+                (data.geocoded_travel_location ? " (geocoded from trip text)" : "")
+            )
+          );
+        }
+        if (data.research_from_tools_error) {
+          ov.appendChild(el("p", "muted", "Research tools error: " + data.research_from_tools_error));
+        }
+        if (data.research_from_tools_digest) {
+          const d = data.research_from_tools_digest;
+          ov.appendChild(
+            el("p", "muted", "Places/web research (excerpt): " + (d.length > 500 ? d.slice(0, 500) + "…" : d))
+          );
+        }
+
+        if (data.llm && data.llm.summary_for_traveler) {
+          sm.appendChild(el("p", "", data.llm.summary_for_traveler));
+        } else {
+          sm.appendChild(
+            el(
+              "p",
+              "muted",
+              data.llm_skip_reason === "missing_openai_api_key"
+                ? "No LLM summary (OpenAI key not configured). Rule-based view below."
+                : data.llm_error
+                  ? "LLM error: " + data.llm_error
+                  : "No LLM block in this response."
+            )
+          );
+        }
+
+        const contrast = (data.llm && data.llm.healthcare_system_contrast) || [];
+        if (contrast.length) {
+          contrast.forEach((line) => cx.appendChild(el("li", "", line)));
+        } else {
+          cx.appendChild(
+            el(
+              "li",
+              "muted",
+              data.llm_skip_reason === "missing_openai_api_key"
+                ? "Contrast bullets appear when OpenAI is configured."
+                : "No contrast bullets in this response (see raw JSON if the model omitted the field)."
+            )
+          );
+        }
+
+        (data.rule_rationale || []).forEach((line) => {
+          rb.appendChild(el("li", "", line));
+        });
+        if (!data.rule_rationale || !data.rule_rationale.length) {
+          rb.appendChild(el("li", "muted", "None"));
+        }
+
+        if (citIntro) {
+          citIntro.textContent =
+            "Trip-specific framing is shown first when the model returns it. Raw excerpts are a small keyword-matched corpus — expand below.";
+        }
+        (data.citations || []).forEach((c) => {
+          const li = document.createElement("li");
+          const t = el("strong", "", c.title || c.id || "Source");
+          li.appendChild(t);
+          if (c.excerpt) li.appendChild(el("div", "muted", c.excerpt));
+          cb.appendChild(li);
+        });
+        if (!data.citations || !data.citations.length) {
+          cb.appendChild(el("li", "muted", "None"));
+        }
+        const srcCtx = (data.llm && data.llm.sources_context_for_traveler) || [];
+        if (scBody && scFb) {
+          if (srcCtx.length) {
+            scFb.hidden = true;
+            scBody.hidden = false;
+            srcCtx.forEach((line) => scBody.appendChild(el("li", "", line)));
+          } else {
+            scBody.hidden = true;
+            scFb.hidden = false;
+            scFb.textContent =
+              data.llm_skip_reason === "missing_openai_api_key"
+                ? "Trip-specific notes on these excerpts need OpenAI on the server. Raw excerpts are in the section below — expand to read them."
+                : data.llm_error
+                  ? "Model notes were not generated (" + data.llm_error + "). Expand below for raw retrieval excerpts."
+                  : "No model notes for this turn. Expand below for raw retrieval excerpts.";
+          }
+        }
+        if (rawDetails) {
+          rawDetails.open = srcCtx.length === 0;
+        }
+
+        const nextItems = (data.llm && data.llm.what_to_do_next) || [];
+        if (nextItems.length) {
+          nextItems.forEach((s) => nb.appendChild(el("li", "", s)));
+        } else {
+          nb.appendChild(el("li", "muted", "See rule checks and summary."));
+        }
+
+        const qs = (data.llm && data.llm.questions_to_clarify) || [];
+        if (qs.length) {
+          qs.forEach((q) => qb.appendChild(el("li", "", q)));
+        } else {
+          qb.appendChild(el("li", "muted", "None suggested — you can still ask in chat."));
+        }
+
+        const disc =
+          (data.llm && data.llm.disclaimer) || data.disclaimer || "Educational use only — not a diagnosis.";
+        db.textContent = disc;
+
+        if (Array.isArray(data.retrieval_queries_used) && data.retrieval_queries_used.length) {
+          const rq = document.createElement("p");
+          rq.className = "muted";
+          rq.style.marginTop = "0.35rem";
+          rq.textContent =
+            "Internal retrieval queries used: " + data.retrieval_queries_used.map((q) => JSON.stringify(q)).join(" · ");
+          ov.appendChild(rq);
+        }
+
+        renderTreatmentCostPanel(data);
+        renderPharmacyOtcPanel(data);
+
+        const llmPromptPre = document.getElementById("llmPromptPre");
+        const llmPromptDetails = document.getElementById("llmPromptDetails");
+        if (llmPromptPre && llmPromptDetails) {
+          if (data.llm_api_prompt) {
+            const p = data.llm_api_prompt;
+            llmPromptPre.textContent =
+              "POST " +
+              (p.endpoint || "https://api.openai.com/v1/chat/completions") +
+              "\nmodel: " +
+              (p.model || "") +
+              "\ntemperature: " +
+              (p.temperature != null ? String(p.temperature) : "") +
+              "\n\n=== system ===\n" +
+              (p.system || "") +
+              "\n\n=== user ===\n" +
+              (p.user || "");
+            llmPromptDetails.hidden = false;
+            llmPromptDetails.open = false;
+          } else {
+            llmPromptPre.textContent = "";
+            llmPromptDetails.hidden = true;
+          }
+        }
+
+        const forJson = { ...data };
+        delete forJson.llm_api_prompt;
+        jsonEl.textContent = JSON.stringify(forJson, null, 2);
+      }
+
+      function updateChatChrome() {
+        chatShell.hidden = false;
+        if (apiOpenAiConfigured) {
+          chatInput.disabled = false;
+          chatSend.disabled = false;
+          chatHint.textContent =
+            "Replies use OpenAI with your full chat history and the original story. Each send should answer your latest line — say what changed or what you still need.";
+        } else {
+          chatInput.disabled = true;
+          chatSend.disabled = true;
+          chatHint.textContent =
+            "Follow-up chat needs OPENAI_API_KEY on the server. You can still read panels and raw JSON.";
+        }
+      }
+
+      async function postAssist() {
+        const r = await fetch("/api/assist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: sessionMessage,
+            language: assistLanguage(),
+            location: assistTravelLocation(),
+            home_country: document.getElementById("homeCountry").value.trim(),
+            chat_history: sessionChatHistory,
+            query_strategy: document.getElementById("queryStrategy").value,
+            map_latitude: lastMapLat != null ? lastMapLat : null,
+            map_longitude: lastMapLng != null ? lastMapLng : null,
+            research_tools: document.getElementById("researchTools").checked,
+            prior_treatment_plan_options: lastTreatmentPlanOptions,
+            selected_treatment_plan_id:
+              (document.querySelector('input[name="treatmentPlanPick"]:checked') || {}).value || "",
+          }),
+        });
+        if (!r.ok) throw new Error(await r.text());
+        return r.json();
+      }
+
+      goBtn.addEventListener("click", async () => {
+        const msg = document.getElementById("msg").value.trim();
+        if (!msg) {
+          alert("Please describe what is happening before getting guidance.");
+          return;
+        }
+        await refreshApiFlags();
+        goBtn.disabled = true;
+        out.hidden = true;
+        if (abstainBanner) {
+          abstainBanner.hidden = true;
+          abstainBanner.textContent = "";
+        }
+        sessionMessage = msg;
+        sessionChatHistory = [];
+        lastTreatmentPlanOptions = [];
+        chatMessages.innerHTML = "";
+        const trClear = document.getElementById("panelTreatmentRadios");
+        if (trClear) trClear.innerHTML = "";
+        try {
+          const data = await postAssist();
+          renderAssistResponse(data);
+          out.hidden = false;
+          updateChatChrome();
+          appendAssistantChatBubble(data);
+          sessionChatHistory.push({ role: "assistant", content: assistantTurnPlainText(data) });
+          if (data.emergency) {
+            banner.classList.add("emergency");
+            banner.textContent =
+              "Possible emergency pattern — if this is happening now, call your local emergency number or go to the nearest appropriate ER.";
+          } else {
+            banner.classList.remove("emergency");
+            banner.textContent =
+              "Use your destination’s official emergency numbers for urgent medical issues. This tool does not replace emergency services.";
+          }
+        } catch (e) {
+          jsonEl.textContent = String(e);
+          out.hidden = false;
+          chatShell.hidden = true;
+        } finally {
+          goBtn.disabled = false;
+        }
+      });
+
+      chatSend.addEventListener("click", async () => {
+        const text = chatInput.value.trim();
+        if (!text || !sessionMessage) return;
+        await refreshApiFlags();
+        if (!apiOpenAiConfigured) return;
+        chatInput.value = "";
+        appendChatBubble("user", text);
+        sessionChatHistory.push({ role: "user", content: text });
+        chatSend.disabled = true;
+        chatInput.disabled = true;
+        try {
+          const data = await postAssist();
+          renderAssistResponse(data);
+          appendAssistantChatBubble(data);
+          sessionChatHistory.push({ role: "assistant", content: assistantTurnPlainText(data) });
+        } catch (e) {
+          appendChatBubble("assistant", "Error: " + String(e));
+          sessionChatHistory.push({ role: "assistant", content: "Error: " + String(e) });
+        } finally {
+          chatSend.disabled = false;
+          chatInput.disabled = false;
+          chatInput.focus();
+        }
+      });
+
+      chatInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          chatSend.click();
+        }
+      });
+
+      const refineTreatmentCostBtn = document.getElementById("refineTreatmentCost");
+      if (refineTreatmentCostBtn) {
+        refineTreatmentCostBtn.addEventListener("click", async () => {
+          if (!sessionMessage.trim()) {
+            alert("Run Get guidance first.");
+            return;
+          }
+          const picked = document.querySelector('input[name="treatmentPlanPick"]:checked');
+          if (!picked || !picked.value) {
+            alert("Select a treatment plan.");
+            return;
+          }
+          await refreshApiFlags();
+          if (!apiOpenAiConfigured) {
+            alert("OpenAI must be configured for cost refinement.");
+            return;
+          }
+          refineTreatmentCostBtn.disabled = true;
+          try {
+            const data = await postAssist();
+            renderAssistResponse(data);
+          } catch (e) {
+            alert(String(e));
+          } finally {
+            refineTreatmentCostBtn.disabled = false;
+          }
+        });
+      }
+
+      loadConfig()
+        .then(() => initMap())
+        .then(() => {
+          if (!map) return;
+          const list = document.getElementById("places");
+          list.innerHTML = `<li class="muted">Search for an address or landmark above to see nearby hospitals.</li>`;
+        })
+        .catch((e) => {
+          banner.textContent = "Config/load error: " + e;
+        });
+    </script>
+  </body>
+</html>
