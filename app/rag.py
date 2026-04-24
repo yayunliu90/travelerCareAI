@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -75,5 +78,7 @@ def retrieve_merged(queries: list[str], *, k_per_query: int = 3, max_chunks: int
                 seen.add(c.id)
                 out.append(c)
                 if len(out) >= max_chunks:
+                    logger.debug("retrieve_merged -> %d chunks (cap)", len(out))
                     return out
+    logger.debug("retrieve_merged queries=%d -> %d chunks", len(queries), len(out))
     return out

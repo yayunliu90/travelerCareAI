@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from typing import Any
 
 import httpx
 
 from app.triage import CareLevel
+
+logger = logging.getLogger(__name__)
 
 
 def _strategy_instruction_block(query_strategy: str) -> str:
@@ -56,7 +59,7 @@ def _language_instruction_block(output_language: str) -> str:
 The application sets output_language to {code!r} — write for a reader of {label}.
 
 Hard rule: Every traveler-facing string you output in the JSON must be written entirely in that language:
-summary_for_traveler, every string in what_to_do_next, every string in healthcare_system_contrast (each may be a multi-sentence paragraph), every string in questions_to_clarify, every string in sources_context_for_traveler, treatment_plan_options titles/descriptions/typical_setting, cost_uncertainty_note, cost_estimate_table plan_title and row item/notes, pharmacy_visit_tips, otc_medication_examples text fields, medication_reference_links titles, medication_reference_images captions, and disclaimer.
+summary_for_traveler, every string in what_to_do_next, every string in healthcare_system_contrast (each may be a multi-sentence paragraph), every string in questions_to_clarify, every string in sources_context_for_traveler, treatment_plan_options titles/descriptions/typical_setting, cost_uncertainty_note, cost_estimate_table plan_title and row item/notes, pharmacy_visit_tips, otc_medication_examples text fields, medication_reference_links titles, medication_reference_images captions, nearby_care_options textual fields (why_consider, review_takeaways), nearby_care_caveats, and disclaimer.
 
 Do not use English (or any other language) for convenience when output_language is not English. Do not mix languages inside those fields unless the traveler's own message explicitly mixes them and mirroring is helpful (still default to output_language).
 
@@ -70,6 +73,7 @@ def build_system_prompt(
     query_strategy: str,
     *,
     chat_follow_up: bool = False,
+    destination_local_context: dict[str, Any] | None = None,
 ) -> str:
     """Location + optional home country for destination-vs-home healthcare framing."""
     loc = (travel_location or "").strip()
@@ -94,13 +98,20 @@ You should still give useful destination-oriented guidance. You may ask at most 
         "message is the primary focus — answer it directly. Refresh summary_for_traveler, what_to_do_next, "
         "healthcare_system_contrast, treatment_plan_options, cost_estimate_table, cost_uncertainty_note, "
         "pharmacy_visit_tips, otc_medication_examples, medication_reference_links, medication_reference_images, "
-        "questions_to_clarify, and sources_context_for_traveler so they reflect any "
+        "nearby_care_options, nearby_care_caveats, questions_to_clarify, and sources_context_for_traveler so they reflect any "
         "NEW facts or questions from that latest message. Do not paste a generic first-visit brief unchanged when "
         "they asked something specific; avoid repeating prior assistant wording unless they explicitly asked for a "
         "recap or the medical facts truly did not change."
         if chat_follow_up
         else ""
     )
+    dest_local_section = ""
+    if destination_local_context:
+        dest_local_section = """
+
+Destination local time (**destination_local_context** in the user JSON):
+- Treat **local_datetime_iso** and **timezone_id** as the server’s approximate civil date/time at the trip map coordinates (not necessarily the traveler’s device clock). Use them only for qualitative logistics (e.g. overnight vs daytime patterns; whether same-day routine outpatient care may be harder to access without inventing specific hours).
+- **Do not invent** opening hours, appointment rules, or schedules for named facilities unless they appear in **research_from_tools_digest** or **research_from_tools_structured**. If **open_now** is present on a facility record from Places, you may describe it as a tool snapshot, not a guarantee of future hours."""
     return f"""You are a decision-support assistant for international travelers.
 You are NOT a doctor and do NOT provide a medical diagnosis.
 Follow the server's rule-based care_level and emergency flag strictly — do not contradict them.
@@ -134,6 +145,19 @@ Pharmacy, urgent-care context, and OTC medication naming (educational only — n
 - **Pictures**: **medication_reference_images** may list **https** image or product-info URLs **only** if copied **verbatim** from research_from_tools_digest. **Do not invent** image URLs, stock-photo hosts, or retailer deep links you did not see in tools.
 - When the plan is **urgent care** or **emergency**, keep OTC/pharmacy talk secondary and do not imply OTC replaces needed clinical or emergency care.
 
+Nearby facilities (nearby_care_options in your JSON output):
+- When the user JSON includes **research_from_tools_structured.nearby_facilities** (non-empty), populate **nearby_care_options** with up to **3** **curated** local options derived **only** from those records — **not** an unfiltered dump of every listing. Pick facilities that best fit the traveler’s situation and **server_decision** (severity / emergency).
+- For **each** selected facility, **why_consider** (required) must combine: (1) why this kind of care may suit them now, (2) **access / timing realism** using **destination_local_context** when present (e.g. late evening vs daytime) **without inventing posted hours**, and (3) when **open_now** is present on **that** facility’s structured record, state what it implies (**true** / **false** / unknown) as a **Google Places snapshot at lookup time only**, and tell the traveler to verify before going if access is uncertain.
+- Prefer **not** recommending a listing whose **open_now** is **false** when the traveler likely needs **immediate in-person** care tonight, unless no better tool-backed alternative exists — then say so explicitly in **why_consider** and suggest verifying or using emergency-appropriate pathways per **server_decision**.
+- **nearby_care_caveats** (optional, 0–2 short strings): name **other facilities that appear in the same nearby_facilities tool list** and briefly why they are **less suitable right now** — **only** tool-grounded reasons (e.g. **open_now** false on that row, cosmetic-only type for an emergency, extreme distance vs alternatives). Do not invent hours or closures not reflected in **open_now** or the digest.
+- Preserve **exact facility names** and concrete numeric fields (**distance_m**, **rating**, **review_count**) when present in structured data; keep **review_takeaways** short and grounded in **review_snippets** from the same record.
+- **Do not invent** addresses, opening hours, phone numbers, or map links. **maps_url** may be included only when a valid **https** URL is already present on that facility record.
+- If **server_decision.emergency** is true, prioritize **hospital / emergency-appropriate** facilities from structured data when available.
+- If urgent but not emergency, prefer **clinic / urgent care / doctor**-type entries from structured data when supported.
+- If symptoms are mild and pharmacy/self-care is reasonable, a **pharmacy** entry may be included when supported by structured data.
+- If **nearby_facilities** is missing or empty, output **nearby_care_options** as an empty array and **nearby_care_caveats** as an empty array.
+{dest_local_section}
+
 Citations from retrieval (important):
 The payload includes citations_from_retrieval — short excerpts from a small fixed travel-health text corpus matched by simple keyword overlap, not a jurisdiction-specific or map-backed knowledge base. The product may show those excerpts verbatim to the traveler. You MUST still populate sources_context_for_traveler (see schema): 1–4 concise bullets in output_language explaining how the retrieved themes apply — or do not apply — to their stated trip location, symptoms, home context, and any research_from_tools_digest. If excerpts are generic, say that clearly. Paraphrase themes; do not invent corpus ids, URLs, or local facts not supported by citations or the digest.
 
@@ -154,6 +178,27 @@ def _normalize_amount(x: Any) -> float | None:
         return float(x)
     except (TypeError, ValueError):
         return None
+
+
+def _normalize_int_optional(x: Any) -> int | None:
+    if x is None or isinstance(x, bool):
+        return None
+    if isinstance(x, int):
+        return x
+    if isinstance(x, float):
+        try:
+            return int(round(x))
+        except (ValueError, OverflowError):
+            return None
+    if isinstance(x, str):
+        s = x.strip()
+        if not s:
+            return None
+        try:
+            return int(float(s))
+        except ValueError:
+            return None
+    return None
 
 
 def _normalize_treatment_plan_options(raw: Any) -> list[dict[str, str]]:
@@ -299,6 +344,8 @@ def _normalize_traveler_llm_json(obj: dict[str, Any]) -> dict[str, Any]:
     obj["otc_medication_examples"] = _normalize_otc_examples(obj.get("otc_medication_examples"))
     obj["medication_reference_links"] = _normalize_https_link_pairs(obj.get("medication_reference_links"), max_items=8)
     obj["medication_reference_images"] = _normalize_image_url_pairs(obj.get("medication_reference_images"))
+    obj["nearby_care_options"] = _normalize_nearby_care_options(obj.get("nearby_care_options"))
+    obj["nearby_care_caveats"] = _normalize_string_list(obj.get("nearby_care_caveats"), max_items=2, max_len=500)
     return obj
 
 
@@ -325,6 +372,31 @@ def _chat_follow_up_context(history: list[dict[str, str]]) -> tuple[str | None, 
             break
     return last_user, prior_asst
 
+def _normalize_nearby_care_options(raw: Any) -> list[dict[str, Any]]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for row in raw[:3]:
+        if not isinstance(row, dict):
+            continue
+        out.append(
+            {
+                "name": str(row.get("name") or "")[:300],
+                "type": str(row.get("type") or "")[:120],
+                "distance_m": _normalize_amount(row.get("distance_m")),
+                "rating": _normalize_amount(row.get("rating")),
+                "review_count": _normalize_int_optional(row.get("review_count")),
+                "address": str(row.get("address") or "")[:500] or None,
+                "why_consider": str(row.get("why_consider") or "")[:1600],
+                "review_takeaways": _normalize_string_list(row.get("review_takeaways"), max_items=3, max_len=300),
+                "maps_url": (
+                    str(row.get("maps_url") or "")[:2000]
+                    if str(row.get("maps_url") or "").startswith("https://")
+                    else None
+                ),
+            }
+        )
+    return out
 
 async def augment_with_openai(
     *,
@@ -339,12 +411,15 @@ async def augment_with_openai(
     chat_history: list[dict[str, str]] | None = None,
     query_strategy: str = "single_turn",
     research_from_tools_digest: str | None = None,
+    research_from_tools_structured: dict[str, Any] | None = None,
     selected_treatment_plan_id: str | None = None,
     prior_treatment_plan_options: list[dict[str, str]] | None = None,
+    destination_local_context: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any] | Any | None, dict[str, Any] | None]:
     """Returns (traveler_llm_json_or_none, llm_api_prompt_meta_or_none)."""
     key = os.getenv("OPENAI_API_KEY", "").strip()
     if not key:
+        logger.info("augment_with_openai skipped: OPENAI_API_KEY unset")
         return None, None
 
     history = chat_history or []
@@ -359,6 +434,13 @@ async def augment_with_openai(
     digest = (research_from_tools_digest or "").strip() or None
     sel_plan = (selected_treatment_plan_id or "").strip() or None
     prior_plans = prior_treatment_plan_options or []
+    structured_research: dict[str, Any] | None = None
+    if isinstance(research_from_tools_structured, dict) and research_from_tools_structured:
+        structured_research = {
+            k: v for k, v in research_from_tools_structured.items() if k != "digest_text"
+        }
+        if not structured_research:
+            structured_research = None
 
     task = (
         "Produce traveler-facing JSON guidance. Always include healthcare_system_contrast as a non-empty "
@@ -386,6 +468,23 @@ async def augment_with_openai(
         "medication_reference_images (0–4 objects with caption + https url — **only** URLs verbatim from "
         "research_from_tools_digest). Use empty lists when not applicable. Never give personal dosing or prescribe."
     )
+    task += (
+        " NEARBY CARE OPTIONS: Include **nearby_care_options** as an array of **at most 3** objects matching the "
+        "user JSON schema shapes; follow the system prompt section **Nearby facilities (nearby_care_options in your JSON output)** "
+        "using **research_from_tools_structured.nearby_facilities** only — otherwise []. "
+        "Each **why_consider** must justify why that facility is a sensible pick **now** (curate; do not mirror the whole tool list) "
+        "and must incorporate **timing / access** using **destination_local_context** when present plus **open_now** on that row when present. "
+        "Optionally add **nearby_care_caveats** (0–2 strings) for other tool-listed facilities that are **poorly suited now**, only with tool-grounded reasons."
+    )
+    if structured_research:
+        task += (
+            " STRUCTURED TOOL RESEARCH: The field research_from_tools_structured may contain "
+            "official_local_system_summary, cost_signals, nearby_facilities, other_web_findings, and research_notes. "
+            "When nearby_facilities is present, preserve concrete details from those records rather than compressing "
+            "them into vague prose. Prefer exact facility names, distance_m, rating, review_count, and review_snippets "
+            "when surfacing local care options. Do not invent fields that are missing."
+        )
+
     if strat == "unsolvable":
         task += (
             " Always output boolean abstain and string abstention_reason (use empty string when abstain is false). "
@@ -410,7 +509,7 @@ async def augment_with_openai(
             "is the traveler's newest message — answer it directly first. Refresh summary_for_traveler, what_to_do_next, "
             "healthcare_system_contrast, treatment_plan_options, cost_estimate_table, cost_uncertainty_note, "
             "pharmacy_visit_tips, otc_medication_examples, medication_reference_links, medication_reference_images, "
-            "questions_to_clarify, and sources_context_for_traveler to incorporate any NEW "
+            "nearby_care_options, nearby_care_caveats, questions_to_clarify, and sources_context_for_traveler to incorporate any NEW "
             "symptoms, timing, or questions from that message. If prior_assistant_message_excerpt is present, treat it as "
             "what they already saw: do not repeat the same blocks verbatim; add delta guidance, corrections, or narrower "
             "next steps. Still follow server_decision strictly."
@@ -420,6 +519,13 @@ async def augment_with_openai(
                 " If chat_history contains the user stating their home country, treat it as redundant with "
                 "traveler_home_country — still do not ask again."
             )
+    if destination_local_context:
+        task += (
+            " The field destination_local_context gives approximate local civil time at the trip map coordinates—use it "
+            "for qualitative after-hours vs daytime logistics in what_to_do_next and treatment_plan_options, without "
+            "inventing facility hours not supported by tools (see system prompt)."
+        )
+
     if digest:
         task += (
             " The field research_from_tools_digest contains live Google Places (ratings, distances, review snippets) "
@@ -461,6 +567,8 @@ async def augment_with_openai(
         "user_symptoms_or_story": user_message,
         "chat_history": history,
     }
+    if destination_local_context:
+        user_blob["destination_local_context"] = destination_local_context
     if chat_follow_up and latest_follow_up:
         user_blob["latest_follow_up_from_traveler"] = latest_follow_up
     if chat_follow_up and prior_assistant_excerpt:
@@ -482,6 +590,7 @@ async def augment_with_openai(
         language,
         strat,
         chat_follow_up=chat_follow_up,
+        destination_local_context=destination_local_context,
     )
     user_message_payload: dict[str, Any] = {
         **user_blob,
@@ -493,6 +602,7 @@ async def augment_with_openai(
         "citations_from_retrieval": citations,
         "query_strategy": strat,
         "research_from_tools_digest": digest,
+        "research_from_tools_structured": structured_research or None,
         "schema": {
             "abstain": "boolean",
             "abstention_reason": "string (empty when abstain is false)",
@@ -538,9 +648,26 @@ async def augment_with_openai(
                     "brand_examples_nonbinding": "string (optional)",
                 }
             ],
+            "nearby_care_options": [
+                {
+                    "name": "string",
+                    "type": "string",
+                    "distance_m": "number|null",
+                    "rating": "number|null",
+                    "review_count": "number|null",
+                    "address": "string|null",
+                    "why_consider": "string (include timing/access using destination_local_context when present; cite open_now only as Places snapshot on that row)",
+                    "review_takeaways": ["string"],
+                    "maps_url": "string|null",
+                }
+            ],
+            "nearby_care_caveats": [
+                "string (0–2: other tool-listed facilities less suitable now; tool-grounded reasons only)"
+            ],
             "medication_reference_links": [{"title": "string", "url": "string (https only, grounded)"}],
             "medication_reference_images": [{"caption": "string", "url": "string (https only, from tools only)"}],
             "disclaimer": "string",
+
         },
     }
     user_content_str = json.dumps(user_message_payload, ensure_ascii=False)
@@ -570,12 +697,28 @@ async def augment_with_openai(
             headers={"Authorization": f"Bearer {key}"},
             json=payload,
         )
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            logger.warning(
+                "OpenAI chat/completions HTTP status=%s model=%s",
+                e.response.status_code,
+                model_name,
+            )
+            raise
         data = r.json()
         content = data["choices"][0]["message"]["content"]
         parsed = json.loads(content)
         if isinstance(parsed, dict):
-            return _normalize_traveler_llm_json(parsed), prompt_meta
+            out = _normalize_traveler_llm_json(parsed)
+            logger.info(
+                "augment_with_openai ok model=%s strategy=%s emergency=%s",
+                model_name,
+                strat,
+                emergency,
+            )
+            return out, prompt_meta
+        logger.warning("augment_with_openai: model returned non-dict JSON root")
         return parsed, prompt_meta
 
 
@@ -620,7 +763,11 @@ async def plan_retrieval_subqueries(*, user_text: str) -> list[str]:
             headers={"Authorization": f"Bearer {key}"},
             json=payload,
         )
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            logger.warning("OpenAI subquery planner HTTP status=%s", e.response.status_code)
+            raise
         data = r.json()
         content = data["choices"][0]["message"]["content"]
         parsed = json.loads(content)
@@ -630,4 +777,6 @@ async def plan_retrieval_subqueries(*, user_text: str) -> list[str]:
         for item in raw:
             if isinstance(item, str) and item.strip():
                 out.append(item.strip()[:200])
-    return out[:5]
+    out = out[:5]
+    logger.debug("plan_retrieval_subqueries returned %d queries", len(out))
+    return out

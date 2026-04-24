@@ -4,32 +4,91 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Travel Care AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        color: #0f172a;
-        background: #f8fafc;
+        --tc-font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --tc-ink: #0f172a;
+        --tc-ink-soft: #334155;
+        --tc-muted: #64748b;
+        --tc-surface: rgba(255, 255, 255, 0.82);
+        --tc-surface-solid: #ffffff;
+        --tc-line: rgba(148, 163, 184, 0.45);
+        --tc-accent: #0ea5e9;
+        --tc-accent-2: #6366f1;
+        --tc-glow: rgba(14, 165, 233, 0.35);
+        --tc-radius: 14px;
+        --tc-radius-sm: 10px;
+        --tc-shadow: 0 10px 40px -12px rgba(15, 23, 42, 0.12);
+        --tc-shadow-lg: 0 22px 50px -18px rgba(15, 23, 42, 0.18);
+        font-family: var(--tc-font);
+        color: var(--tc-ink);
+        background: transparent;
       }
-      body {
+      @keyframes tc-fade-up {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      body.tc-app {
         margin: 0;
-        padding: 1rem;
-        max-width: 960px;
+        min-height: 100vh;
+        padding: 1.25rem clamp(0.75rem, 3vw, 1.75rem) 2.5rem;
+        max-width: 1040px;
         margin-inline: auto;
+        box-sizing: border-box;
+        color: var(--tc-ink);
+        background: radial-gradient(ellipse 900px 480px at 0% -5%, rgba(56, 189, 248, 0.22), transparent 55%),
+          radial-gradient(ellipse 800px 420px at 100% 0%, rgba(129, 140, 248, 0.18), transparent 50%),
+          radial-gradient(ellipse 700px 500px at 50% 110%, rgba(45, 212, 191, 0.12), transparent 45%),
+          linear-gradient(168deg, #f0f9ff 0%, #f8fafc 42%, #eef2ff 100%);
+        background-attachment: fixed;
       }
-      h1 {
-        font-size: 1.35rem;
+      .site-title {
+        margin: 0.35rem 0 0.15rem;
+        font-size: clamp(1.65rem, 4vw, 2.15rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        color: var(--tc-ink);
+      }
+      .site-title .brand-mark {
+        background: linear-gradient(120deg, #0284c7 0%, #6366f1 45%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .site-tagline {
+        margin: 0 0 0.25rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--tc-muted);
+        max-width: 36rem;
       }
       .banner {
-        background: #fef3c7;
-        border: 1px solid #f59e0b;
-        padding: 0.75rem 1rem;
-        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(254, 243, 199, 0.95), rgba(253, 230, 138, 0.5));
+        border: 1px solid rgba(245, 158, 11, 0.55);
+        padding: 0.85rem 1.1rem;
+        border-radius: var(--tc-radius-sm);
         margin-bottom: 1rem;
         font-size: 0.9rem;
+        box-shadow: var(--tc-shadow);
+        animation: tc-fade-up 0.45s ease both;
       }
       .emergency {
-        background: #fee2e2;
-        border-color: #ef4444;
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        border-color: rgba(239, 68, 68, 0.65);
+        color: #7f1d1d;
       }
       label {
         display: block;
@@ -47,38 +106,84 @@
       }
       button {
         margin-top: 0.75rem;
-        padding: 0.55rem 1.1rem;
-        border-radius: 8px;
+        padding: 0.6rem 1.25rem;
+        border-radius: var(--tc-radius-sm);
         border: none;
-        background: #0ea5e9;
+        background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 55%, #4f46e5 100%);
         color: #fff;
-        font-weight: 600;
+        font-weight: 700;
+        font-family: inherit;
         cursor: pointer;
+        box-shadow: 0 4px 16px var(--tc-glow);
+        transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.15s ease;
+      }
+      button:hover:not(:disabled) {
+        filter: brightness(1.05);
+        box-shadow: 0 6px 22px rgba(14, 165, 233, 0.42);
+        transform: translateY(-1px);
+      }
+      button:active:not(:disabled) {
+        transform: translateY(0);
       }
       button.secondary {
         margin-left: 0.5rem;
-        background: #64748b;
+        background: linear-gradient(135deg, #64748b, #475569);
+        box-shadow: 0 3px 12px rgba(71, 85, 105, 0.25);
+      }
+      button.secondary:hover:not(:disabled) {
+        box-shadow: 0 5px 18px rgba(71, 85, 105, 0.32);
       }
       button:disabled {
-        opacity: 0.55;
+        opacity: 0.5;
         cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
       }
-      #map {
-        height: 280px;
-        border-radius: 8px;
-        margin-top: 1rem;
-        border: 1px solid #cbd5e1;
+      #startSessionBtn,
+      #generateReportBtn {
+        padding: 0.7rem 1.35rem;
+        font-size: 0.95rem;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 40%, #6366f1 100%);
+        box-shadow: 0 6px 24px rgba(14, 165, 233, 0.4);
+      }
+      #generateReportBtn {
+        width: 100%;
       }
       .card {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 1rem;
+        background: var(--tc-surface);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        border-radius: var(--tc-radius);
+        padding: 1.15rem 1.25rem;
         margin-top: 1rem;
+        box-shadow: var(--tc-shadow-lg);
+        animation: tc-fade-up 0.5s ease both;
+      }
+      .card h2 {
+        font-size: 1.12rem;
+        font-weight: 800;
+        color: var(--tc-ink-soft);
+        letter-spacing: -0.02em;
       }
       .muted {
-        color: #64748b;
+        color: var(--tc-muted);
         font-size: 0.85rem;
+      }
+      .tc-app input[type="text"],
+      .tc-app select,
+      .tc-app textarea {
+        border-radius: var(--tc-radius-sm) !important;
+        border: 1px solid var(--tc-line) !important;
+        transition: border-color 0.15s ease, box-shadow 0.2s ease;
+      }
+      .tc-app input[type="text"]:focus,
+      .tc-app select:focus,
+      .tc-app textarea:focus {
+        outline: none;
+        border-color: rgba(14, 165, 233, 0.65) !important;
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.28);
       }
       ul {
         padding-left: 1.2rem;
@@ -90,7 +195,7 @@
       }
       .results-grid {
         display: grid;
-        gap: 0.75rem;
+        gap: 1rem;
         grid-template-columns: 1fr;
       }
       @media (min-width: 720px) {
@@ -102,21 +207,135 @@
         }
       }
       .panel {
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 0.85rem 1rem;
-        background: #f8fafc;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        border-radius: var(--tc-radius-sm);
+        padding: 0.9rem 1.05rem;
+        background: linear-gradient(165deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);
+        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
       }
       .panel h3 {
         margin: 0 0 0.5rem;
         font-size: 0.95rem;
-        color: #334155;
+        font-weight: 800;
+        color: #1e3a5f;
+        letter-spacing: -0.015em;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .panel h3::before {
+        content: "";
+        width: 4px;
+        height: 1.05em;
+        border-radius: 3px;
+        background: linear-gradient(180deg, #38bdf8, #6366f1);
+        flex-shrink: 0;
       }
       .panel p,
       .panel li {
         margin: 0.35rem 0;
         font-size: 0.9rem;
         line-height: 1.45;
+      }
+      .research-digest {
+        margin-top: 0.65rem;
+        padding: 0.65rem 0.75rem;
+        border-radius: var(--tc-radius-sm);
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+      }
+      .research-digest-title {
+        margin: 0 0 0.5rem;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #334155;
+      }
+      .research-section {
+        margin-top: 0.65rem;
+      }
+      .research-section:first-of-type {
+        margin-top: 0;
+      }
+      .research-section-title {
+        margin: 0 0 0.35rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #475569;
+        letter-spacing: 0.01em;
+      }
+      ul.research-list {
+        margin: 0.15rem 0 0;
+        padding-left: 1.15rem;
+        list-style-type: disc;
+      }
+      ul.research-list > li {
+        margin: 0.25rem 0;
+        padding-left: 0.15rem;
+      }
+      ul.research-snippet-list {
+        margin: 0.35rem 0 0.15rem;
+        padding-left: 1.1rem;
+        list-style-type: circle;
+        font-size: 0.84rem;
+      }
+      ul.research-snippet-list > li {
+        margin: 0.2rem 0;
+      }
+      .nearby-care-card {
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        border-radius: var(--tc-radius-sm);
+        padding: 0.65rem 0.75rem;
+        margin-top: 0.55rem;
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+      }
+      .nearby-care-card:first-of-type {
+        margin-top: 0.25rem;
+      }
+      .nearby-care-head strong {
+        font-size: 0.95rem;
+        color: #0f172a;
+      }
+      .nearby-care-meta {
+        margin-top: 0.2rem;
+        font-size: 0.82rem;
+      }
+      .nearby-care-address {
+        margin: 0.35rem 0 0;
+        font-size: 0.82rem;
+      }
+      .nearby-care-why {
+        margin: 0.5rem 0 0;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        color: #1e293b;
+      }
+      ul.nearby-care-review-list {
+        margin: 0.35rem 0 0;
+        padding-left: 1.15rem;
+        font-size: 0.84rem;
+      }
+      .nearby-care-maplink {
+        display: inline-block;
+        margin-top: 0.45rem;
+        font-size: 0.82rem;
+        color: #0369a1;
+        font-weight: 600;
+      }
+      .nearby-care-maplink:hover {
+        color: #4f46e5;
+      }
+      .nearby-care-caveats {
+        margin-top: 0.75rem;
+        padding-top: 0.55rem;
+        border-top: 1px dashed #cbd5e1;
+      }
+      .nearby-care-caveats-title {
+        margin: 0 0 0.35rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #64748b;
       }
       .citations-raw {
         margin-top: 0.65rem;
@@ -144,53 +363,60 @@
         margin-bottom: 0.35rem;
       }
       .tag-level {
-        background: #e0f2fe;
-        color: #0369a1;
+        background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+        color: #075985;
+        border: 1px solid rgba(14, 165, 233, 0.25);
       }
       .tag-warn {
-        background: #fee2e2;
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
         color: #b91c1c;
+        border: 1px solid rgba(239, 68, 68, 0.25);
       }
       .tag-ok {
-        background: #dcfce7;
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
         color: #166534;
+        border: 1px solid rgba(34, 197, 94, 0.25);
       }
       .chat-shell {
-        border: 1px solid #cbd5e1;
-        border-radius: 10px;
+        border: 1px solid var(--tc-line);
+        border-radius: var(--tc-radius-sm);
         overflow: hidden;
-        margin-top: 1rem;
-        background: #fff;
+        margin-top: 0;
+        background: var(--tc-surface-solid);
+        box-shadow: var(--tc-shadow);
       }
       .chat-messages {
         height: 280px;
         overflow-y: auto;
-        padding: 0.75rem;
-        background: #f1f5f9;
+        padding: 0.85rem;
+        background: linear-gradient(180deg, #f0f9ff 0%, #f1f5f9 55%, #eef2ff 100%);
         display: flex;
         flex-direction: column;
-        gap: 0.6rem;
+        gap: 0.65rem;
       }
       .chat-bubble {
         max-width: 88%;
-        padding: 0.55rem 0.75rem;
-        border-radius: 12px;
+        padding: 0.65rem 0.85rem;
+        border-radius: 14px;
         font-size: 0.9rem;
-        line-height: 1.45;
+        line-height: 1.5;
         white-space: pre-wrap;
         word-break: break-word;
+        animation: tc-fade-up 0.35s ease both;
       }
       .chat-bubble.user {
         align-self: flex-end;
-        background: #0ea5e9;
+        background: linear-gradient(135deg, #0284c7, #0ea5e9 60%, #38bdf8);
         color: #fff;
-        border-bottom-right-radius: 4px;
+        border-bottom-right-radius: 5px;
+        box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
       }
       .chat-bubble.assistant {
         align-self: flex-start;
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-bottom-left-radius: 4px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        border-bottom-left-radius: 5px;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
       }
       .chat-bubble .role {
         font-size: 0.7rem;
@@ -325,78 +551,574 @@
         white-space: pre-wrap;
         word-break: break-word;
       }
+      .activity-log {
+        margin-top: 0.35rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+      .activity-step {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.55rem 0.7rem;
+        background: #fff;
+        font-size: 0.86rem;
+        line-height: 1.45;
+      }
+      .activity-step .act-meta {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+      }
+      .activity-step .act-title {
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 0.2rem;
+      }
+      .activity-step pre.act-json {
+        margin: 0.35rem 0 0;
+        font-size: 0.72rem;
+        max-height: 220px;
+        overflow: auto;
+        background: #f8fafc;
+        border-radius: 6px;
+        padding: 0.4rem 0.5rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .api-status-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+        margin: 0.5rem 0 0.75rem;
+        padding: 0.35rem 0;
+        font-size: 0.8rem;
+      }
+      .api-status-bar .api-bar-label {
+        font-weight: 600;
+        color: #475569;
+        margin-right: 0.25rem;
+        width: 100%;
+      }
+      @media (min-width: 520px) {
+        .api-status-bar .api-bar-label {
+          width: auto;
+          margin-right: 0.35rem;
+        }
+      }
+      .api-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.32rem 0.65rem;
+        border-radius: 999px;
+        border: 1px solid rgba(203, 213, 225, 0.9);
+        background: rgba(255, 255, 255, 0.95);
+        font-weight: 700;
+        font-size: 0.78rem;
+        color: #334155;
+        box-shadow: 0 1px 6px rgba(15, 23, 42, 0.05);
+      }
+      .api-pill .api-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .api-pill.ok {
+        border-color: #86efac;
+        background: #f0fdf4;
+        color: #14532d;
+      }
+      .api-pill.ok .api-dot {
+        background: #22c55e;
+      }
+      .api-pill.warn {
+        border-color: #fcd34d;
+        background: #fffbeb;
+        color: #92400e;
+      }
+      .api-pill.warn .api-dot {
+        background: #f59e0b;
+      }
+      .api-pill.off {
+        border-color: #e2e8f0;
+        background: #f8fafc;
+        color: #64748b;
+      }
+      .api-pill.off .api-dot {
+        background: #cbd5e1;
+      }
+      .app-mode-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem 0.85rem;
+        margin-bottom: 0.85rem;
+        padding: 0.45rem 0.55rem 0.45rem 0.85rem;
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        border-radius: 999px;
+        max-width: 100%;
+        box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+      }
+      .app-mode-bar .mode-label {
+        font-weight: 800;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--tc-muted);
+        margin-right: 0.15rem;
+      }
+      .app-mode-bar label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 0;
+        font-weight: 700;
+        font-size: 0.88rem;
+        cursor: pointer;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .app-mode-bar label:has(input:checked) {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(99, 102, 241, 0.15));
+        color: #0369a1;
+      }
+      .app-mode-bar input[type="radio"] {
+        accent-color: #0ea5e9;
+      }
+      /* Sliding wizard: info → chat → report */
+      .tc-flow-shell {
+        margin-top: 1rem;
+        border-radius: var(--tc-radius);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.88));
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        box-shadow: var(--tc-shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+        overflow: hidden;
+        animation: tc-fade-up 0.5s ease both;
+        display: flex;
+        flex-direction: column;
+        /* Definite column height so the viewport flex child and height:100% track get a real size */
+        height: min(86vh, calc(100vh - 5.25rem), 920px);
+        max-height: min(92vh, calc(100vh - 3.5rem), 960px);
+        min-height: 0;
+      }
+      @supports (height: 1dvh) {
+        .tc-flow-shell {
+          height: min(86dvh, calc(100dvh - 5.25rem), 920px);
+          max-height: min(92dvh, calc(100dvh - 3.5rem), 960px);
+        }
+      }
+      .tc-flow-progress-wrap {
+        flex-shrink: 0;
+        padding: 0.65rem 1rem 0.35rem;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+        background: linear-gradient(90deg, rgba(240, 249, 255, 0.65), rgba(238, 242, 255, 0.5));
+      }
+      .tc-flow-step-labels {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.35rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--tc-muted);
+        margin-bottom: 0.45rem;
+        max-width: 28rem;
+        margin-inline: auto;
+      }
+      .tc-flow-step-labels span {
+        flex: 1;
+        text-align: center;
+        opacity: 0.45;
+        transition: opacity 0.35s ease, color 0.35s ease, transform 0.35s ease;
+      }
+      .tc-flow-step-labels span.active {
+        opacity: 1;
+        color: #0369a1;
+        transform: scale(1.02);
+      }
+      .tc-flow-progress {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.4rem;
+        padding-bottom: 0.15rem;
+      }
+      .tc-flow-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #cbd5e1;
+        transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s ease, box-shadow 0.35s ease;
+      }
+      .tc-flow-dot.active {
+        background: linear-gradient(135deg, #0ea5e9, #6366f1);
+        transform: scale(1.35);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.35);
+      }
+      /* One “pane” width = viewport; margin % is of this box (not the 300%-wide track) */
+      .tc-flow-viewport {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+      .tc-flow-track {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        width: 300%;
+        height: 100%;
+        min-height: 0;
+        margin-left: 0;
+        transition: margin-left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: margin-left;
+      }
+      .tc-flow-track.tc-flow-step-0 {
+        margin-left: 0;
+      }
+      .tc-flow-track.tc-flow-step-1 {
+        margin-left: -100%;
+      }
+      .tc-flow-track.tc-flow-step-2 {
+        margin-left: -200%;
+      }
+      .tc-flow-slide {
+        flex: 0 0 calc(100% / 3);
+        width: calc(100% / 3);
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 0.75rem 0.9rem 1rem;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+        -webkit-overflow-scrolling: touch;
+      }
+      .tc-flow-slide-session {
+        padding-top: 0.65rem;
+      }
+      .tc-flow-slide-report {
+        padding: 0.55rem 0.65rem 1rem;
+        background: linear-gradient(180deg, rgba(241, 245, 249, 0.5), rgba(248, 250, 252, 0.4));
+      }
+      #tcFlowSlideInfo .tc-flow-card-inner {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        /* Fallback if any ancestor % height fails in a browser */
+        max-height: min(70vh, calc(100vh - 11rem), 700px);
+      }
+      @supports (max-height: 1dvh) {
+        #tcFlowSlideInfo .tc-flow-card-inner {
+          max-height: min(70dvh, calc(100dvh - 11rem), 700px);
+        }
+      }
+      #tcFlowSlideSession .session-modal-panel {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        max-width: none;
+        max-height: none;
+      }
+      #tcFlowSlideSession .session-modal-body {
+        min-height: 0;
+        flex: 1;
+        overflow: auto;
+      }
+      #tcFlowSlideSession .session-modal-chat {
+        flex: 1;
+        min-height: 200px;
+        overflow: hidden;
+      }
+      #tcFlowSlideSession .session-modal-chat .chat-messages {
+        flex: 1;
+        min-height: 140px;
+        max-height: none;
+        overflow-y: auto;
+      }
+      .tc-flow-slide-report #out.session-report-area {
+        flex: 1;
+        min-height: 0;
+        max-height: none;
+      }
+      .tc-flow-card-inner.card {
+        margin-top: 0;
+        animation: none;
+        box-shadow: var(--tc-shadow);
+      }
+      .session-modal-panel {
+        position: relative;
+        z-index: 1;
+        width: min(960px, 100%);
+        max-height: min(92vh, 900px);
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #f8fafc 100%);
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 28px 80px -20px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+        overflow: hidden;
+        animation: tc-fade-up 0.4s ease both;
+      }
+      .session-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.85rem 1.15rem;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+        background: linear-gradient(90deg, rgba(240, 249, 255, 0.9), rgba(238, 242, 255, 0.75));
+      }
+      .session-modal-header h2 {
+        margin: 0;
+        font-size: 1.08rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        background: linear-gradient(120deg, #0369a1, #4f46e5);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .session-modal-body {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        min-height: 0;
+      }
+      @media (min-width: 720px) {
+        .session-modal-body {
+          grid-template-columns: 1fr minmax(140px, 200px);
+          align-items: start;
+        }
+      }
+      .session-modal-chat {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        min-height: 220px;
+      }
+      .session-modal-chat .chat-messages {
+        flex: 1;
+        min-height: 200px;
+        max-height: min(38vh, 320px);
+      }
+      .session-modal-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .session-modal-actions button {
+        margin-top: 0;
+      }
+      .session-modal-actions .muted {
+        font-size: 0.78rem;
+        line-height: 1.4;
+      }
+      #out.session-report-area {
+        margin-top: 0;
+        border-radius: var(--tc-radius-sm);
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        padding: 0.85rem 1.1rem 1.15rem;
+        overflow: auto;
+        max-height: min(78vh, 720px);
+        background: linear-gradient(180deg, rgba(248, 250, 252, 0.98), #f1f5f9);
+        box-shadow: var(--tc-shadow);
+      }
+      #out.session-report-area > h2 {
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .tc-report-slide-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.35rem;
+      }
+      .tc-report-slide-toolbar button.secondary {
+        margin-top: 0;
+        margin-left: 0;
+      }
+      .tc-flow-slide-report:has(#out[hidden]) .tc-report-slide-toolbar {
+        opacity: 0;
+        pointer-events: none;
+        height: 0;
+        margin: 0;
+        overflow: hidden;
+      }
+      .session-modal-header button.secondary {
+        margin-left: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      .tc-app a:link {
+        color: #0284c7;
+      }
+      .tc-app a:visited {
+        color: #6d28d9;
+      }
+      .tc-app a:hover {
+        color: #4f46e5;
+      }
+      .tc-app input[type="checkbox"] {
+        accent-color: #0ea5e9;
+      }
+      .cost-table th {
+        background: linear-gradient(180deg, #f1f5f9, #e2e8f0);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+        html {
+          scroll-behavior: auto;
+        }
+      }
+      /* Normal mode: hide developer / tool transparency UI in the report */
+      body.tc-normal-mode #apiServiceIndicators,
+      body.tc-normal-mode #apiServiceIndicatorsHint {
+        display: none !important;
+      }
+      body.tc-normal-mode #out details.raw-details {
+        display: none !important;
+      }
+      body.tc-normal-mode #panelActivity {
+        display: none !important;
+      }
     </style>
   </head>
-  <body>
-    <h1>Travel Care AI (prototype)</h1>
+  <body class="tc-app">
+    <div class="app-mode-bar">
+      <span class="mode-label">Mode</span>
+      <label><input type="radio" name="appMode" value="demo" checked /> Demo</label>
+      <label><input type="radio" name="appMode" value="normal" /> Normal</label>
+    </div>
+    <h1 class="site-title">Travel Care <span class="brand-mark">AI</span></h1>
+    <p class="site-tagline">
+      Smarter orientation for health concerns while you travel — rules, retrieval, location-aware research, and optional
+      AI guidance.
+    </p>
+    <div id="apiServiceIndicators" class="api-status-bar" role="status" aria-live="polite"></div>
+    <p id="apiServiceIndicatorsHint" class="muted" style="margin-top: -0.35rem; margin-bottom: 0.65rem; font-size: 0.78rem">
+      Keys are checked on the server (see <code>.env</code>). Hover a badge for details.
+    </p>
     <div id="statusBanner" class="banner">
       Loading configuration…
     </div>
 
-    <div class="card">
-      <label for="examplePrompt">Load a test example</label>
-      <select
-        id="examplePrompt"
-        style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1; font: inherit; box-sizing: border-box"
-      >
-        <option value="">— Choose an example —</option>
-        <option value="lisbon_mild">Lisbon — mild cold / pharmacy-type symptoms (single-turn)</option>
-        <option value="austin_fever">Austin, TX — fever after travel (multi-turn + map pin)</option>
-        <option value="berlin_emergency">Berlin — chest pain &amp; breathlessness (emergency pattern)</option>
-        <option value="paris_rash">Paris — itchy rash, mild (clinic vs pharmacy)</option>
-        <option value="taipei_zh">Taipei — 中文描述头痛疲劳 (zh + multi-turn)</option>
-        <option value="unsolvable_rx">London — asks for diagnosis + prescription (unsolvable-aware)</option>
-        <option value="tokyo_tools">Tokyo — heat + long walks (single-turn + internal RAG tools)</option>
-        <option value="nyc_china">
-          New York City — visitor from China, mild illness + how US/NYC care works (multi-turn + map pin)
-        </option>
-      </select>
-      <p class="muted" style="margin-top: 0.35rem">
-        Fills the symptom text, <strong>where you are</strong>, <strong>where you are from</strong>, map search, and
-        sometimes language / query strategy. Then click <strong>Get guidance</strong>.
+    <div id="sessionModal" class="tc-flow-shell" aria-label="TravelCare steps">
+      <div class="tc-flow-progress-wrap">
+        <div class="tc-flow-step-labels" aria-hidden="true">
+          <span class="tc-flow-label active" data-flow-label="0">Your trip</span>
+          <span class="tc-flow-label" data-flow-label="1">Chat</span>
+          <span class="tc-flow-label" data-flow-label="2">Report</span>
+        </div>
+        <div class="tc-flow-progress" role="presentation">
+          <span class="tc-flow-dot tc-flow-dot-0 active" title="Step 1"></span>
+          <span class="tc-flow-dot tc-flow-dot-1" title="Step 2"></span>
+          <span class="tc-flow-dot tc-flow-dot-2" title="Step 3"></span>
+        </div>
+      </div>
+      <div class="tc-flow-viewport">
+      <div id="tcFlowTrack" class="tc-flow-track tc-flow-step-0">
+        <div class="tc-flow-slide" id="tcFlowSlideInfo">
+          <div class="card tc-flow-card-inner" id="landingCard">
+      <h2 style="margin-top: 0; font-size: 1.05rem">Traveler information</h2>
+      <p id="normalModeResearchNote" class="muted" hidden style="margin-top: 0">
+        Normal mode uses <strong>multi-turn</strong> dialogue and always enables <strong>server research</strong> (Google
+        Places + web search) when your server keys support it — settings are not shown here.
       </p>
 
-      <label for="lang">Your language (ISO-style code — the assistant reply is written in this language, e.g. zh, ja, en, es)</label>
+      <div id="demoOnlyBlock">
+        <label for="examplePrompt">Sample prompt (demo)</label>
+        <select
+          id="examplePrompt"
+          style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1; font: inherit; box-sizing: border-box"
+        >
+          <option value="">— Choose an example —</option>
+          <option value="lisbon_mild">Lisbon — mild cold / pharmacy-type symptoms (single-turn)</option>
+          <option value="austin_fever">Austin, TX — fever after travel (multi-turn + demo coordinates)</option>
+          <option value="berlin_emergency">Berlin — chest pain &amp; breathlessness (emergency pattern)</option>
+          <option value="paris_rash">Paris — itchy rash, mild (clinic vs pharmacy)</option>
+          <option value="taipei_zh">Taipei — 中文描述头痛疲劳 (zh + multi-turn)</option>
+          <option value="unsolvable_rx">London — asks for diagnosis + prescription (unsolvable-aware)</option>
+          <option value="tokyo_tools">Tokyo — heat + long walks (single-turn + internal RAG tools)</option>
+          <option value="nyc_china">
+            New York City — visitor from China, mild illness + how US/NYC care works (multi-turn + demo coordinates)
+          </option>
+        </select>
+        <p class="muted" style="margin-top: 0.35rem">
+          Loads language, trip/home text, coordinates for server research, and (for some rows) query strategy. In
+          <strong>single-turn</strong> (and other one-round) demo strategies load the sample into chat — press
+          <strong>Send</strong> once, then <strong>Generate report</strong> after the greeting.
+        </p>
+
+        <label for="queryStrategy">Query strategy (demo)</label>
+        <select
+          id="queryStrategy"
+          style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1; font: inherit; box-sizing: border-box"
+        >
+          <option value="single_turn">
+            Single-turn — one reply per request (no internal tool rounds on the server)
+          </option>
+          <option value="single_turn_tools">
+            Single-turn + internal tools — server runs extra retrieval without asking you between steps
+          </option>
+          <option value="multi_turn">
+            Multi-turn — model may ask for missing info; use chat for follow-up rounds
+          </option>
+          <option value="unsolvable">
+            Unsolvable-aware — model may abstain when context or policy does not allow a safe answer
+          </option>
+        </select>
+        <p id="strategyHint" class="muted" style="margin-top: 0.35rem"></p>
+
+        <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; font-weight: 600">
+          <input type="checkbox" id="researchTools" checked />
+          <span>Server-side research (Google Places + web search) before the report</span>
+        </label>
+        <p id="researchToolsHint" class="muted" style="margin-top: 0.25rem">
+          Uses <code>GOOGLE_MAPS_SERVER_KEY</code> and either <code>SERPER_API_KEY</code> (Serper.dev) or
+          <code>SERPAPI_API_KEY</code> (SerpAPI.com) on the server. Set <strong>Where you are</strong> (or use a demo
+          sample with coordinates) so Places can run.
+        </p>
+      </div>
+
+      <label for="lang">Your language</label>
       <input
         id="lang"
         type="text"
         value=""
-        placeholder="e.g. zh"
+        placeholder="e.g. zh, en, ja, es (ISO-style codes)"
         style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1"
       />
 
-      <label for="queryStrategy">Query strategy</label>
-      <select
-        id="queryStrategy"
-        style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1; font: inherit; box-sizing: border-box"
-      >
-        <option value="single_turn">
-          Single-turn — one reply per request (no internal tool rounds on the server)
-        </option>
-        <option value="single_turn_tools">
-          Single-turn + internal tools — server runs extra retrieval without asking you between steps
-        </option>
-        <option value="multi_turn">
-          Multi-turn — model may ask for missing info; use chat for follow-up rounds
-        </option>
-        <option value="unsolvable">
-          Unsolvable-aware — model may abstain when context or policy does not allow a safe answer
-        </option>
-      </select>
-      <p id="strategyHint" class="muted" style="margin-top: 0.35rem"></p>
-
-      <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; font-weight: 600">
-        <input type="checkbox" id="researchTools" checked />
-        <span>Server-side research (Google Places + web search) before the answer</span>
-      </label>
-      <p id="researchToolsHint" class="muted" style="margin-top: 0.25rem">
-        Uses <code>GOOGLE_MAPS_SERVER_KEY</code> and <code>SERPER_API_KEY</code> on the server. The research step is
-        steered toward <strong>official local government / public-health pages</strong> for the trip location when
-        possible. Pin a location on the map (or set “Where you are”) so Places can run. Browser Maps key alone is not
-        enough for server Places.
-      </p>
-
-      <label for="tripLocation">Where you are (city, region, or country — optional)</label>
+      <label for="tripLocation">Where you are</label>
       <input
         id="tripLocation"
         type="text"
@@ -404,12 +1126,12 @@
         placeholder="e.g. Lisbon, Portugal"
         style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1"
       />
-      <p class="muted" style="margin-top: 0.35rem">
-        Used for localized guidance. If empty, the server may use <code>DEFAULT_TRAVEL_LOCATION</code> from
-        <code>.env</code>, or stay location-agnostic. The map search below can also fill this when you pick a place.
+      <p id="landingTripHint" class="muted" style="margin-top: 0.35rem">
+        Used for localized guidance and server geocoding. If empty, the server may use <code>DEFAULT_TRAVEL_LOCATION</code>
+        from <code>.env</code>, or stay location-agnostic.
       </p>
 
-      <label for="homeCountry">Where you are from (home country or region — optional)</label>
+      <label for="homeCountry">Where you are from</label>
       <input
         id="homeCountry"
         type="text"
@@ -417,27 +1139,80 @@
         placeholder="e.g. United States, Ontario Canada, Germany"
         style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1"
       />
-      <p class="muted" style="margin-top: 0.35rem">
-        Helps compare how healthcare usually works <strong>where you are now</strong> versus what you may be used to
-        at home (access, referrals, payment, pharmacies, emergency norms). If empty, the server may use
-        <code>DEFAULT_HOME_COUNTRY</code> from <code>.env</code>.
-        <strong>Important:</strong> fill this field (or rely on that env default) — writing “I’m from …” only inside the
-        symptom box does <strong>not</strong> send <code>traveler_home_country</code> to the model, so it may still ask
-        where you are from.
+      <p id="landingHomeHint" class="muted" style="margin-top: 0.35rem">
+        Helps compare how healthcare usually works <strong>where you are now</strong> versus what you may be used to at
+        home. If empty, the server may use <code>DEFAULT_HOME_COUNTRY</code> from <code>.env</code>.
       </p>
 
-      <label for="msg">Describe what is happening (symptoms, when it started, severity)</label>
-      <textarea id="msg" placeholder="Example: Fever started two days after arrival; sore throat and fatigue."></textarea>
-      <button id="go" type="button">Get guidance</button>
-      <p class="muted">
-        This demo combines rule-based checks, simple retrieval over a tiny local corpus, and optional OpenAI
-        for wording — it is <strong>not</strong> medical advice.
-      </p>
-    </div>
+      <textarea id="msg" hidden aria-hidden="true"></textarea>
+      <input type="hidden" id="placeQuery" value="" />
 
-    <div id="out" class="card" hidden>
-      <h2 style="margin-top: 0; font-size: 1.1rem">Guidance</h2>
+      <button id="startSessionBtn" type="button">Continue to chat →</button>
+      <p class="muted" style="margin-top: 0.5rem">
+        Educational decision support only — <strong>not</strong> medical advice. 
+      </p>
+          </div>
+        </div>
+
+        <div class="tc-flow-slide tc-flow-slide-session" id="tcFlowSlideSession">
+          <div class="session-modal-panel" role="dialog" aria-modal="true" aria-labelledby="sessionModalTitle">
+        <div class="session-modal-header">
+          <h2 id="sessionModalTitle">TravelCare session</h2>
+          <button type="button" id="closeSessionModal" class="secondary">← Your trip</button>
+        </div>
+        <div class="session-modal-body">
+          <div class="session-modal-chat">
+            <div class="chat-shell" id="chatShell">
+              <div
+                style="padding: 0.5rem 0.75rem 0; font-size: 0.85rem; font-weight: 600; color: #475569"
+                id="chatShellLead"
+              >
+                Chat with the assistant
+              </div>
+              <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+              <div class="chat-input-row">
+                <input id="chatInput" type="text" placeholder="Describe symptoms or ask a follow-up…" autocomplete="off" />
+                <button id="chatSend" type="button" class="secondary" style="margin-left: 0">Send</button>
+              </div>
+              <p id="chatHint" class="muted" style="margin: 0 0.75rem 0.35rem; font-size: 0.8rem"></p>
+              <p
+                id="oneTurnSendLockNotice"
+                class="muted"
+                hidden
+                role="status"
+                style="margin: 0 0.75rem 0.65rem; font-size: 0.78rem; line-height: 1.45; color: #475569"
+              ></p>
+            </div>
+          </div>
+          <aside class="session-modal-actions">
+            <button type="button" id="generateReportBtn">Generate report →</button>
+            <button type="button" id="flowViewReportBtn" class="secondary" hidden>View report →</button>
+            <p id="sessionGenerateBlurb" class="muted">
+              Produces summary, overview (including server research steps), next steps, cost estimates, and recommended
+              medical resources — from your conversation, trip location, and coordinates when provided.
+            </p>
+          </aside>
+        </div>
+          </div>
+        </div>
+
+        <div class="tc-flow-slide tc-flow-slide-report" id="tcFlowSlideReport">
+          <div class="tc-report-slide-toolbar">
+            <button type="button" id="flowBackToChatBtn" class="secondary">← Back to chat</button>
+          </div>
+          <div id="out" class="session-report-area" hidden>
+      <h2 style="margin-top: 0; font-size: 1.1rem">Guidance report</h2>
       <div id="abstainBanner" class="banner emergency" hidden style="margin-top: 0.5rem"></div>
+
+      <div class="panel span-2" id="panelActivity" hidden>
+        <h3>What the server did (tools &amp; research)</h3>
+        <p id="panelActivityIntro" class="muted" style="margin-top: 0">
+          Step-by-step view of internal OpenAI calls: corpus planning, research model tool rounds (web search /
+          nearby Places), then the main traveler-facing reply. Sensitive text is truncated; this is for transparency
+          only.
+        </p>
+        <div id="panelActivityBody" class="activity-log"></div>
+      </div>
 
       <div class="results-grid">
         <div class="panel span-2" id="panelOverview">
@@ -479,6 +1254,15 @@
           <ol id="panelNextBody"></ol>
         </div>
 
+        <div class="panel span-2" id="panelNearbyCare" hidden>
+          <h3>Recommended medical resources</h3>
+          <p id="panelNearbyCareIntro" class="muted" style="margin-top: 0">
+            Assistant-ranked options when available; otherwise facilities from server Google Places research. Timing
+            notes may use <code>open_now</code> as a snapshot only — verify hours before you go.
+          </p>
+          <div id="panelNearbyCareBody"></div>
+        </div>
+
         <div class="panel span-2" id="panelTreatment">
           <h3>Treatment options &amp; cost estimates</h3>
           <p id="panelTreatmentHint" class="muted"></p>
@@ -510,18 +1294,6 @@
         </div>
       </div>
 
-      <div class="chat-shell" id="chatShell" hidden>
-        <div style="padding: 0.5rem 0.75rem 0; font-size: 0.85rem; font-weight: 600; color: #475569">
-          Ask follow-ups (uses the same assist API with chat history)
-        </div>
-        <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
-        <div class="chat-input-row">
-          <input id="chatInput" type="text" placeholder="Type a follow-up question…" autocomplete="off" />
-          <button id="chatSend" type="button" class="secondary" style="margin-left: 0">Send</button>
-        </div>
-        <p id="chatHint" class="muted" style="margin: 0 0.75rem 0.65rem; font-size: 0.8rem"></p>
-      </div>
-
       <details class="raw-details" id="llmPromptDetails" hidden>
         <summary>LLM API request (system + user messages)</summary>
         <pre id="llmPromptPre"></pre>
@@ -531,26 +1303,10 @@
         <summary>Raw JSON response</summary>
         <pre id="json"></pre>
       </details>
-    </div>
-
-    <div class="card">
-      <h2 style="margin-top: 0; font-size: 1.1rem">Nearby (Google Places)</h2>
-      <p class="muted">
-        Enter where you are (or use device location). Only that place query goes to Google for the map —
-        symptom text from above is <strong>not</strong> sent to Google. Geocoding needs the
-        <strong>Geocoding API</strong> enabled for your Maps key.
-      </p>
-      <label for="placeQuery" style="margin-top: 0">Your location (address, area, or landmark)</label>
-      <input
-        id="placeQuery"
-        type="text"
-        placeholder="e.g. 10 Downing Street, London"
-        style="width: 100%; padding: 0.45rem; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box"
-      />
-      <button id="placeGo" type="button">Show on map &amp; nearby hospitals</button>
-      <button id="useGps" type="button" class="secondary">Use my current location</button>
-      <div id="map"></div>
-      <ul id="places"></ul>
+          </div>
+        </div>
+      </div>
+      </div>
     </div>
 
     <script>
@@ -566,8 +1322,38 @@
       const banner = document.getElementById("statusBanner");
       const out = document.getElementById("out");
       const jsonEl = document.getElementById("json");
-      const goBtn = document.getElementById("go");
+      const startSessionBtn = document.getElementById("startSessionBtn");
+      const sessionModal = document.getElementById("sessionModal");
+      const tcFlowTrack = document.getElementById("tcFlowTrack");
+      const flowBackToChatBtn = document.getElementById("flowBackToChatBtn");
+      const flowViewReportBtn = document.getElementById("flowViewReportBtn");
+      const closeSessionModalBtn = document.getElementById("closeSessionModal");
+      const generateReportBtn = document.getElementById("generateReportBtn");
       const abstainBanner = document.getElementById("abstainBanner");
+
+      const SESSION_GREETING = "Hi! Welcome to TravelCare.ai. How can I help you?";
+
+      let tcFlowStep = 0;
+
+      function setFlowStep(step) {
+        tcFlowStep = Math.max(0, Math.min(2, step | 0));
+        if (tcFlowTrack) tcFlowTrack.className = "tc-flow-track tc-flow-step-" + tcFlowStep;
+        document.querySelectorAll(".tc-flow-dot").forEach((d, i) => d.classList.toggle("active", i === tcFlowStep));
+        document.querySelectorAll("[data-flow-label]").forEach((el) => {
+          const n = Number(el.getAttribute("data-flow-label"));
+          if (!Number.isNaN(n)) el.classList.toggle("active", n === tcFlowStep);
+        });
+        const slides = [
+          document.getElementById("tcFlowSlideInfo"),
+          document.getElementById("tcFlowSlideSession"),
+          document.getElementById("tcFlowSlideReport"),
+        ];
+        slides.forEach((el, i) => {
+          if (!el) return;
+          el.setAttribute("aria-hidden", i === tcFlowStep ? "false" : "true");
+          if ("inert" in el) el.inert = i !== tcFlowStep;
+        });
+      }
 
       function syncStrategyHint() {
         const sel = document.getElementById("queryStrategy");
@@ -585,10 +1371,12 @@
         };
         hint.textContent = m[sel.value] || "";
       }
-      document.getElementById("queryStrategy").addEventListener("change", syncStrategyHint);
+      document.getElementById("queryStrategy").addEventListener("change", () => {
+        syncStrategyHint();
+        updateChatChromeForSession();
+      });
       syncStrategyHint();
 
-      const chatShell = document.getElementById("chatShell");
       const chatMessages = document.getElementById("chatMessages");
       const chatInput = document.getElementById("chatInput");
       const chatSend = document.getElementById("chatSend");
@@ -598,15 +1386,54 @@
       let sessionMessage = "";
       let sessionChatHistory = [];
 
-      let map;
-      let service;
-      let geocoder;
-      let locationMarker = null;
-      let googleMapsKey = "";
       let lastMapLat = null;
       let lastMapLng = null;
       /** Echoed to server when refining costs ({id, title} from last assist). */
       let lastTreatmentPlanOptions = [];
+
+      function isNormalMode() {
+        const r = document.querySelector('input[name="appMode"]:checked');
+        return !!(r && r.value === "normal");
+      }
+
+      function isDemoOneTurnByStrategy() {
+        if (isNormalMode()) return false;
+        const sel = document.getElementById("queryStrategy");
+        if (!sel) return true;
+        return sel.value !== "multi_turn";
+      }
+
+      function getEffectiveQueryStrategy() {
+        return isNormalMode() ? "multi_turn" : document.getElementById("queryStrategy").value;
+      }
+
+      function getEffectiveResearchTools() {
+        return isNormalMode() ? true : document.getElementById("researchTools").checked;
+      }
+
+      function syncAppModeUi() {
+        const demoBlock = document.getElementById("demoOnlyBlock");
+        const nn = document.getElementById("normalModeResearchNote");
+        const apiBar = document.getElementById("apiServiceIndicators");
+        const apiHint = document.getElementById("apiServiceIndicatorsHint");
+        const landingDisclaimer = document.getElementById("landingDisclaimer");
+        const landingTripHint = document.getElementById("landingTripHint");
+        const landingHomeHint = document.getElementById("landingHomeHint");
+        const sessionGenerateBlurb = document.getElementById("sessionGenerateBlurb");
+        const nm = isNormalMode();
+        document.body.classList.toggle("tc-normal-mode", nm);
+        if (demoBlock) demoBlock.hidden = nm;
+        if (nn) nn.hidden = !nm;
+        if (apiBar) apiBar.hidden = nm;
+        if (apiHint) apiHint.hidden = nm;
+        if (landingDisclaimer) landingDisclaimer.hidden = nm;
+        if (landingTripHint) landingTripHint.hidden = nm;
+        if (landingHomeHint) landingHomeHint.hidden = nm;
+        if (sessionGenerateBlurb) sessionGenerateBlurb.hidden = nm;
+        syncStrategyHint();
+      }
+      document.querySelectorAll('input[name="appMode"]').forEach((r) => r.addEventListener("change", syncAppModeUi));
+      syncAppModeUi();
 
       const EXAMPLE_SCENARIOS = {
         lisbon_mild: {
@@ -730,26 +1557,80 @@
         }
         lastMapLat = x.lat != null ? x.lat : null;
         lastMapLng = x.lng != null ? x.lng : null;
-        if (map && typeof google !== "undefined" && x.lat != null && x.lng != null) {
-          applyMapLocation({ lat: x.lat, lng: x.lng }, x.tripLocation);
-        }
       }
 
       document.getElementById("examplePrompt").addEventListener("change", (e) => {
         applyExampleScenario(e.target.value);
       });
 
+      function renderApiIndicators(cfg) {
+        const host = document.getElementById("apiServiceIndicators");
+        if (!host || !cfg) return;
+
+        function pill(label, state, title) {
+          const span = document.createElement("span");
+          span.className =
+            "api-pill " + (state === "ok" ? "ok" : state === "warn" ? "warn" : "off");
+          if (title) span.title = title;
+          const dot = document.createElement("span");
+          dot.className = "api-dot";
+          dot.setAttribute("aria-hidden", "true");
+          const text = document.createElement("span");
+          const suffix =
+            state === "ok" ? " · ready" : state === "warn" ? " · partial" : " · not set";
+          text.textContent = label + suffix;
+          span.appendChild(dot);
+          span.appendChild(text);
+          return span;
+        }
+
+        host.innerHTML = "";
+        const barLabel = document.createElement("span");
+        barLabel.className = "api-bar-label";
+        barLabel.textContent = "API status";
+        host.appendChild(barLabel);
+
+        const placesState = cfg.placesServerConfigured ? "ok" : "off";
+
+        host.appendChild(
+          pill(
+            "OpenAI",
+            cfg.openAiConfigured ? "ok" : "off",
+            "OPENAI_API_KEY — traveler-facing JSON, chat follow-ups, and the research sub-agent when enabled."
+          )
+        );
+        host.appendChild(
+          pill(
+            "Google Places (server)",
+            placesState,
+            "GOOGLE_MAPS_SERVER_KEY powers server-side Places + geocoding. This page does not load an embedded map."
+          )
+        );
+        const webProviders = [];
+        if (cfg.serperConfigured) webProviders.push("Serper");
+        if (cfg.serpapiConfigured) webProviders.push("SerpAPI");
+        const webDetail =
+          webProviders.length > 0
+            ? "Configured: " +
+              webProviders.join(" + ") +
+              " (Serper is used first if both are set). Env: SERPER_API_KEY and/or SERPAPI_API_KEY."
+            : "Set SERPER_API_KEY (https://serper.dev) or SERPAPI_API_KEY (https://serpapi.com) for web search in research.";
+        host.appendChild(
+          pill("Web search", cfg.webSearchConfigured ? "ok" : "off", webDetail)
+        );
+      }
+
       async function refreshApiFlags() {
         const r = await fetch("/api/public-config");
         const cfg = await r.json();
         apiOpenAiConfigured = !!cfg.openAiConfigured;
+        renderApiIndicators(cfg);
         return cfg;
       }
 
       async function loadConfig() {
         const r = await fetch("/api/public-config");
         const cfg = await r.json();
-        googleMapsKey = cfg.googleMapsApiKey || "";
         apiOpenAiConfigured = !!cfg.openAiConfigured;
         const rt = document.getElementById("researchTools");
         const rth = document.getElementById("researchToolsHint");
@@ -763,18 +1644,17 @@
             if (rth && !rth.dataset.userEdited) {
               const ps = cfg.placesServerConfigured ? "Places server key: yes" : "Places server key: no";
               const ws = cfg.webSearchConfigured ? "Web search: yes" : "Web search: no";
-              rth.textContent = `${ps}; ${ws}. Pin a map location (or set “Where you are”) for nearby Places results.`;
+              const wv = [];
+              if (cfg.serperConfigured) wv.push("Serper");
+              if (cfg.serpapiConfigured) wv.push("SerpAPI");
+              const wsub = wv.length ? ` (${wv.join(" + ")})` : "";
+              rth.textContent = `${ps}; ${ws}${wsub}. Set “Where you are” (or use a demo sample with coordinates) for nearby Places results.`;
             }
           }
         }
-        if (!cfg.mapsEnabled) {
-          banner.textContent =
-            "Maps disabled: set GOOGLE_MAPS_API_KEY in .env and restart the server. Assist API still works.";
-        } else {
-          banner.classList.remove("emergency");
-          banner.textContent =
-            "Use your destination’s official emergency numbers for urgent medical issues. This tool does not replace emergency services.";
-        }
+        banner.classList.remove("emergency");
+        banner.textContent =
+          "Use your destination’s official emergency numbers for urgent medical issues. This tool does not replace emergency services.";
         const tripEl = document.getElementById("tripLocation");
         if (tripEl && !tripEl.value.trim() && cfg.defaultTravelLocation) {
           tripEl.value = cfg.defaultTravelLocation;
@@ -783,125 +1663,9 @@
         if (homeEl && !homeEl.value.trim() && cfg.defaultHomeCountry) {
           homeEl.value = cfg.defaultHomeCountry;
         }
+        renderApiIndicators(cfg);
         return cfg;
       }
-
-      function loadScript(src) {
-        return new Promise((resolve, reject) => {
-          const s = document.createElement("script");
-          s.src = src;
-          s.async = true;
-          s.onload = resolve;
-          s.onerror = reject;
-          document.head.appendChild(s);
-        });
-      }
-
-      async function initMap() {
-        if (!googleMapsKey) return;
-        await loadScript(
-          `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
-            googleMapsKey
-          )}&libraries=places`
-        );
-        map = new google.maps.Map(document.getElementById("map"), {
-          center: { lat: 20, lng: 0 },
-          zoom: 2,
-        });
-        service = new google.maps.places.PlacesService(map);
-        geocoder = new google.maps.Geocoder();
-      }
-
-      function applyMapLocation(pos, title) {
-        if (!map) return;
-        lastMapLat = typeof pos.lat === "function" ? pos.lat() : pos.lat;
-        lastMapLng = typeof pos.lng === "function" ? pos.lng() : pos.lng;
-        map.setCenter(pos);
-        map.setZoom(15);
-        if (locationMarker) locationMarker.setMap(null);
-        locationMarker = new google.maps.Marker({
-          position: pos,
-          map,
-          title: title || "Your location",
-        });
-        nearbyHospitals(pos);
-      }
-
-      function nearbyHospitals(pos) {
-        if (!service) return;
-        const req = {
-          location: pos,
-          rankBy: google.maps.places.RankBy.DISTANCE,
-          type: "hospital",
-        };
-        const list = document.getElementById("places");
-        list.innerHTML = "";
-        service.nearbySearch(req, (results, status) => {
-          if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
-            list.innerHTML = `<li class="muted">No results (${status})</li>`;
-            return;
-          }
-          results.slice(0, 6).forEach((p) => {
-            const li = document.createElement("li");
-            li.textContent = `${p.name} — ${p.vicinity || ""}`;
-            list.appendChild(li);
-          });
-        });
-      }
-
-      function geocodePlace(query) {
-        const list = document.getElementById("places");
-        const q = (query || "").trim();
-        if (!q) {
-          list.innerHTML = `<li class="muted">Enter a place or address above.</li>`;
-          return;
-        }
-        if (!geocoder || !map) return;
-        geocoder.geocode({ address: q }, (results, status) => {
-          if (status !== "OK" || !results || !results[0]) {
-            list.innerHTML = `<li class="muted">Could not find that place (${status}). Try a fuller address or landmark name.</li>`;
-            return;
-          }
-          const loc = results[0].geometry.location;
-          const pos = { lat: loc.lat(), lng: loc.lng() };
-          const label = results[0].formatted_address || q;
-          applyMapLocation(pos, label);
-          const tripEl = document.getElementById("tripLocation");
-          if (tripEl && !tripEl.value.trim()) tripEl.value = label;
-        });
-      }
-
-      document.getElementById("placeGo").addEventListener("click", () => {
-        geocodePlace(document.getElementById("placeQuery").value);
-      });
-      document.getElementById("placeQuery").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          geocodePlace(document.getElementById("placeQuery").value);
-        }
-      });
-
-      document.getElementById("useGps").addEventListener("click", () => {
-        const list = document.getElementById("places");
-        if (!map) return;
-        if (!("geolocation" in navigator)) {
-          list.innerHTML = `<li class="muted">Geolocation is not available in this browser.</li>`;
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            applyMapLocation(c, "You (device location)");
-            const tripEl = document.getElementById("tripLocation");
-            if (tripEl && !tripEl.value.trim()) {
-              tripEl.value = `${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`;
-            }
-          },
-          () => {
-            list.innerHTML = `<li class="muted">Location permission denied or unavailable. Enter a place above instead.</li>`;
-          }
-        );
-      });
 
       function assistTravelLocation() {
         const trip = document.getElementById("tripLocation").value.trim();
@@ -921,6 +1685,146 @@
         if (className) n.className = className;
         if (text != null) n.textContent = text;
         return n;
+      }
+
+      /** Full Places/web research in Overview: structured API payload when present, else digest lines → sections + lists. */
+      function appendPlacesWebResearch(overviewHost, data) {
+        const structured = data.research_from_tools_structured;
+        const digest = (data.research_from_tools_digest || "").trim();
+
+        function appendSection(title, listHost) {
+          const sec = document.createElement("section");
+          sec.className = "research-section";
+          sec.appendChild(el("h5", "research-section-title", title));
+          sec.appendChild(listHost);
+          return sec;
+        }
+
+        const wrap = document.createElement("div");
+        wrap.className = "research-digest";
+
+        if (structured && typeof structured === "object") {
+          const official = structured.official_local_system_summary;
+          if (Array.isArray(official) && official.length) {
+            const ul = document.createElement("ul");
+            ul.className = "research-list";
+            official.forEach((line) => {
+              const s = String(line || "").trim();
+              if (s) ul.appendChild(el("li", "", s));
+            });
+            if (ul.children.length) wrap.appendChild(appendSection("Official / local-system orientation", ul));
+          }
+
+          const costs = structured.cost_signals;
+          if (Array.isArray(costs) && costs.length) {
+            const ul = document.createElement("ul");
+            ul.className = "research-list";
+            costs.forEach((row) => {
+              if (!row || typeof row !== "object") return;
+              const title = String(row.source_title || "Source").trim();
+              const note = String(row.note || "").trim();
+              const low = row.low_amount;
+              const high = row.high_amount;
+              const cur = String(row.currency || "").trim();
+              let amt = "";
+              if (low != null || high != null) amt = cur ? ` (${cur} ${low}–${high})` : ` (${low}–${high})`;
+              const line = `${title}${amt}${note ? ": " + note : ""}`.trim();
+              if (line) ul.appendChild(el("li", "", line));
+            });
+            if (ul.children.length) wrap.appendChild(appendSection("Cost signals (uncertain)", ul));
+          }
+
+          const facs = structured.nearby_facilities;
+          if (Array.isArray(facs) && facs.length) {
+            const ul = document.createElement("ul");
+            ul.className = "research-list";
+            facs.forEach((f) => {
+              if (!f || typeof f !== "object") return;
+              const li = document.createElement("li");
+              const name = String(f.name || "").trim();
+              const bits = [];
+              if (name) bits.push(name);
+              if (f.distance_m != null) bits.push(String(f.distance_m) + " m");
+              if (f.rating != null) {
+                const rc = f.review_count;
+                bits.push(
+                  rc != null ? `rating ${f.rating} (${rc} reviews)` : `rating ${f.rating}`
+                );
+              }
+              li.appendChild(el("div", "", bits.filter(Boolean).join(" — ")));
+              const sn = f.review_snippets;
+              if (Array.isArray(sn) && sn.length) {
+                const sub = document.createElement("ul");
+                sub.className = "research-snippet-list";
+                sn.forEach((x) => {
+                  const t = String(x || "").trim();
+                  if (t) sub.appendChild(el("li", "muted", t));
+                });
+                if (sub.children.length) li.appendChild(sub);
+              }
+              ul.appendChild(li);
+            });
+            if (ul.children.length) wrap.appendChild(appendSection("Nearby facilities", ul));
+          }
+
+          const other = structured.other_web_findings;
+          if (Array.isArray(other) && other.length) {
+            const ul = document.createElement("ul");
+            ul.className = "research-list";
+            other.forEach((row) => {
+              if (!row || typeof row !== "object") return;
+              const title = String(row.title || "").trim();
+              const snip = String(row.snippet || "").trim();
+              const url = String(row.url || "").trim();
+              const suf = url ? ` (${url})` : "";
+              const line = `${title}${suf}${snip ? ": " + snip : ""}`.trim();
+              if (line) ul.appendChild(el("li", "", line));
+            });
+            if (ul.children.length) wrap.appendChild(appendSection("Other web findings", ul));
+          }
+
+          const notes = structured.research_notes;
+          if (Array.isArray(notes) && notes.length) {
+            const ul = document.createElement("ul");
+            ul.className = "research-list";
+            notes.forEach((line) => {
+              const s = String(line || "").trim();
+              if (s) ul.appendChild(el("li", "muted", s));
+            });
+            if (ul.children.length) wrap.appendChild(appendSection("Research notes", ul));
+          }
+
+          if (!wrap.children.length && digest) {
+            appendDigestPlain(wrap, digest);
+          }
+        } else if (digest) {
+          appendDigestPlain(wrap, digest);
+        }
+
+        if (!wrap.children.length) return;
+        overviewHost.appendChild(el("h4", "research-digest-title", "Places / web research"));
+        overviewHost.appendChild(wrap);
+      }
+
+      function appendDigestPlain(wrap, digestText) {
+        const lines = digestText.split("\n");
+        let ul = null;
+        for (let i = 0; i < lines.length; i++) {
+          const raw = lines[i];
+          const t = String(raw || "").trim();
+          if (!t) continue;
+          if (t.startsWith("- ")) {
+            if (!ul) {
+              ul = document.createElement("ul");
+              ul.className = "research-list";
+              wrap.appendChild(ul);
+            }
+            ul.appendChild(el("li", "", t.slice(2)));
+          } else {
+            ul = null;
+            wrap.appendChild(el("h5", "research-section-title", t));
+          }
+        }
       }
 
       function appendChatBubble(role, text) {
@@ -1036,6 +1940,22 @@
                 oex.map((r) => (r.ingredient_or_class ? r.ingredient_or_class + " — " + (r.ask_pharmacist_note || "") : "")).join(" | ")
             );
           }
+          const nco = data.llm.nearby_care_options;
+          if (Array.isArray(nco) && nco.length) {
+            bits.push(
+              "Recommended medical resources:\n" +
+                nco
+                  .map((o, i) => {
+                    const w = o.why_consider ? "\n   " + String(o.why_consider) : "";
+                    return `${i + 1}. ${o.name || "Facility"}${w}`;
+                  })
+                  .join("\n\n")
+            );
+          }
+          const cav = data.llm.nearby_care_caveats;
+          if (Array.isArray(cav) && cav.length) {
+            bits.push("Other listings (caution): " + cav.map((c) => String(c)).join(" "));
+          }
           if (bits.length) return bits.join("\n\n");
         }
         const r = data.rule_rationale;
@@ -1045,6 +1965,139 @@
 
       function clearNode(n) {
         while (n.firstChild) n.removeChild(n.firstChild);
+      }
+
+      function renderNearbyCarePanel(data) {
+        const panel = document.getElementById("panelNearbyCare");
+        const body = document.getElementById("panelNearbyCareBody");
+        if (!panel || !body) return;
+        clearNode(body);
+        const llm = data.llm;
+        const opts = llm && Array.isArray(llm.nearby_care_options) ? llm.nearby_care_options : [];
+        const caveats = llm && Array.isArray(llm.nearby_care_caveats) ? llm.nearby_care_caveats : [];
+        const structured = data.research_from_tools_structured;
+        const facs =
+          structured && typeof structured === "object" && Array.isArray(structured.nearby_facilities)
+            ? structured.nearby_facilities
+            : [];
+        const showResearchOnly = !opts.length && !caveats.length && facs.length > 0;
+        if (!opts.length && !caveats.length && !facs.length) {
+          panel.hidden = true;
+          return;
+        }
+        panel.hidden = false;
+        if (showResearchOnly) {
+          body.appendChild(
+            el(
+              "p",
+              "muted",
+              "From server Google Places research — the assistant did not return separate ranked options for this run."
+            )
+          );
+        }
+        opts.forEach((o) => {
+          if (!o || typeof o !== "object") return;
+          const card = document.createElement("article");
+          card.className = "nearby-care-card";
+          const head = document.createElement("div");
+          head.className = "nearby-care-head";
+          head.appendChild(el("strong", "", o.name || "Facility"));
+          const metaParts = [];
+          if (o.type) metaParts.push(String(o.type));
+          if (o.distance_m != null) metaParts.push(String(o.distance_m) + " m");
+          if (o.rating != null) {
+            metaParts.push(
+              o.review_count != null
+                ? `rating ${o.rating} (${o.review_count} reviews)`
+                : `rating ${o.rating}`
+            );
+          }
+          if (metaParts.length) head.appendChild(el("div", "nearby-care-meta muted", metaParts.join(" · ")));
+          card.appendChild(head);
+          if (o.address) card.appendChild(el("p", "muted nearby-care-address", String(o.address)));
+          if (o.why_consider) card.appendChild(el("p", "nearby-care-why", String(o.why_consider)));
+          const rtk = Array.isArray(o.review_takeaways) ? o.review_takeaways : [];
+          if (rtk.length) {
+            const ul = document.createElement("ul");
+            ul.className = "nearby-care-review-list";
+            rtk.forEach((t) => {
+              const s = String(t || "").trim();
+              if (s) ul.appendChild(el("li", "muted", s));
+            });
+            if (ul.children.length) card.appendChild(ul);
+          }
+          if (o.maps_url && String(o.maps_url).startsWith("https://")) {
+            const a = document.createElement("a");
+            a.href = o.maps_url;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            a.className = "nearby-care-maplink";
+            a.textContent = "Open in Google Maps";
+            card.appendChild(a);
+          }
+          body.appendChild(card);
+        });
+        if (caveats.length) {
+          const cave = document.createElement("div");
+          cave.className = "nearby-care-caveats";
+          cave.appendChild(
+            el("h4", "nearby-care-caveats-title", "Other nearby listings (not prioritized now)")
+          );
+          const ul = document.createElement("ul");
+          ul.className = "research-list";
+          caveats.forEach((c) => {
+            const s = String(c || "").trim();
+            if (s) ul.appendChild(el("li", "muted", s));
+          });
+          cave.appendChild(ul);
+          body.appendChild(cave);
+        }
+        if (showResearchOnly) {
+          facs.forEach((f) => {
+            if (!f || typeof f !== "object") return;
+            const card = document.createElement("article");
+            card.className = "nearby-care-card";
+            const head = document.createElement("div");
+            head.className = "nearby-care-head";
+            head.appendChild(el("strong", "", f.name || "Facility"));
+            const metaParts = [];
+            if (f.type) metaParts.push(String(f.type));
+            if (f.distance_m != null) metaParts.push(String(f.distance_m) + " m");
+            if (f.open_now === true) metaParts.push("open_now: yes");
+            else if (f.open_now === false) metaParts.push("open_now: no");
+            if (f.rating != null) {
+              metaParts.push(
+                f.review_count != null
+                  ? `rating ${f.rating} (${f.review_count} reviews)`
+                  : `rating ${f.rating}`
+              );
+            }
+            if (metaParts.length) head.appendChild(el("div", "nearby-care-meta muted", metaParts.join(" · ")));
+            card.appendChild(head);
+            if (f.address) card.appendChild(el("p", "muted nearby-care-address", String(f.address)));
+            if (f.why_it_may_help) card.appendChild(el("p", "nearby-care-why", String(f.why_it_may_help)));
+            const sn = Array.isArray(f.review_snippets) ? f.review_snippets : [];
+            if (sn.length) {
+              const ul = document.createElement("ul");
+              ul.className = "nearby-care-review-list";
+              sn.forEach((t) => {
+                const s = String(t || "").trim();
+                if (s) ul.appendChild(el("li", "muted", s));
+              });
+              if (ul.children.length) card.appendChild(ul);
+            }
+            if (f.maps_url && String(f.maps_url).startsWith("https://")) {
+              const a = document.createElement("a");
+              a.href = f.maps_url;
+              a.target = "_blank";
+              a.rel = "noopener noreferrer";
+              a.className = "nearby-care-maplink";
+              a.textContent = "Open in Google Maps";
+              card.appendChild(a);
+            }
+            body.appendChild(card);
+          });
+        }
       }
 
       function formatCostAmount(n) {
@@ -1078,7 +2131,9 @@
         hint.textContent =
           opts.length === 0
             ? "No treatment options in this response."
-            : "Pick a plan, then Refine for a more detailed line-item table (still educational — not a binding quote). With server research + map pin, costs lean on web/Places signals; plain single-turn uses broad heuristics.";
+            : isNormalMode()
+              ? "Pick a plan, then Refine for a more detailed table (indicative only — not a binding quote)."
+              : "Pick a plan, then Refine for a more detailed line-item table (still educational — not a binding quote). With server research and a clear travel location, costs lean on web/Places signals; plain single-turn uses broad heuristics.";
 
         opts.forEach((p, idx) => {
           const row = el("div", "treatment-radio-row");
@@ -1239,7 +2294,120 @@
         }
       }
 
+      function renderAssistActivityLog(data) {
+        const panel = document.getElementById("panelActivity");
+        const body = document.getElementById("panelActivityBody");
+        if (!panel || !body) return;
+        if (isNormalMode()) {
+          panel.hidden = true;
+          body.innerHTML = "";
+          return;
+        }
+        const log = data.assist_activity_log;
+        if (!Array.isArray(log) || !log.length) {
+          panel.hidden = true;
+          body.innerHTML = "";
+          return;
+        }
+        panel.hidden = false;
+        body.innerHTML = "";
+        log.forEach((step, idx) => {
+          const box = document.createElement("div");
+          box.className = "activity-step";
+          const phase = String(step.phase || "server");
+          const kind = String(step.kind || "");
+          const meta = document.createElement("div");
+          meta.className = "act-meta";
+          meta.textContent = "Step " + (idx + 1) + " · " + phase + (kind ? " · " + kind : "");
+          box.appendChild(meta);
+          if (step.title) {
+            box.appendChild(el("div", "act-title", String(step.title)));
+          }
+          if (step.message) {
+            box.appendChild(el("p", "muted", String(step.message)));
+          }
+          if (step.detail) {
+            box.appendChild(el("p", "muted", String(step.detail)));
+          }
+          if (Array.isArray(step.calls) && step.calls.length) {
+            const ul = document.createElement("ul");
+            ul.style.margin = "0.35rem 0 0";
+            ul.style.paddingLeft = "1.15rem";
+            step.calls.forEach((c) => {
+              const li = document.createElement("li");
+              const name = (c && c.name) || "tool";
+              const args = (c && c.arguments) || {};
+              const bits = [];
+              if (args.query) bits.push('web query: "' + String(args.query) + '"');
+              if (args.place_type) bits.push("Places type: " + String(args.place_type));
+              if (args.keyword) bits.push("keyword: " + String(args.keyword));
+              li.textContent = name + (bits.length ? " — " + bits.join("; ") : "");
+              ul.appendChild(li);
+            });
+            box.appendChild(ul);
+          }
+          if (step.summary && typeof step.summary === "object") {
+            const cap = el("p", "muted", "Tool result (summary)");
+            cap.style.marginTop = "0.35rem";
+            cap.style.fontWeight = "600";
+            box.appendChild(cap);
+            const pre = document.createElement("pre");
+            pre.className = "act-json";
+            pre.textContent = JSON.stringify(step.summary, null, 2);
+            box.appendChild(pre);
+          }
+          if (Array.isArray(step.llm_planned_queries) && step.llm_planned_queries.length) {
+            const cap = el("p", "muted", "LLM-planned corpus queries");
+            cap.style.marginTop = "0.35rem";
+            cap.style.fontWeight = "600";
+            box.appendChild(cap);
+            const ul = document.createElement("ul");
+            ul.style.margin = "0.15rem 0 0";
+            ul.style.paddingLeft = "1.15rem";
+            step.llm_planned_queries.forEach((q) => ul.appendChild(el("li", "", String(q))));
+            box.appendChild(ul);
+          }
+          if (Array.isArray(step.queries_run) && step.queries_run.length) {
+            const cap = el(
+              "p",
+              "muted",
+              "Retrieval merge — " +
+                (step.chunks_retrieved != null ? step.chunks_retrieved + " chunks" : "chunks merged")
+            );
+            cap.style.marginTop = "0.35rem";
+            cap.style.fontWeight = "600";
+            box.appendChild(cap);
+            const ul = document.createElement("ul");
+            ul.style.margin = "0.15rem 0 0";
+            ul.style.paddingLeft = "1.15rem";
+            step.queries_run.forEach((q) => ul.appendChild(el("li", "", String(q))));
+            box.appendChild(ul);
+          }
+          const det = document.createElement("details");
+          det.style.marginTop = "0.35rem";
+          const sum = document.createElement("summary");
+          sum.textContent = "Raw step JSON";
+          sum.style.cursor = "pointer";
+          sum.style.fontSize = "0.78rem";
+          sum.style.fontWeight = "600";
+          sum.style.color = "#64748b";
+          det.appendChild(sum);
+          const preFull = document.createElement("pre");
+          preFull.className = "act-json";
+          preFull.style.maxHeight = "160px";
+          try {
+            preFull.textContent = JSON.stringify(step, null, 2);
+          } catch (e) {
+            preFull.textContent = String(step);
+          }
+          det.appendChild(preFull);
+          box.appendChild(det);
+          body.appendChild(box);
+        });
+      }
+
       function renderAssistResponse(data) {
+        renderAssistActivityLog(data);
         const abstainEl = document.getElementById("abstainBanner");
         if (data.llm && data.llm.abstain === true && data.llm.abstention_reason) {
           abstainEl.hidden = false;
@@ -1259,6 +2427,7 @@
         const scFb = document.getElementById("panelSourcesContextFallback");
         const rawDetails = document.getElementById("panelCitationsRaw");
         const nb = document.getElementById("panelNextBody");
+        const nearbyBody = document.getElementById("panelNearbyCareBody");
         const qb = document.getElementById("panelQuestionsBody");
         const db = document.getElementById("panelDisclaimerBody");
 
@@ -1276,6 +2445,7 @@
           scFb.hidden = true;
         }
         clearNode(nb);
+        if (nearbyBody) clearNode(nearbyBody);
         clearNode(qb);
         db.textContent = "";
 
@@ -1288,8 +2458,10 @@
         tags.appendChild(
           el("span", emerg ? "tag tag-warn" : "tag tag-ok", emerg ? "Emergency pattern: yes" : "Emergency pattern: no")
         );
-        const strat = data.query_strategy || "single_turn";
-        tags.appendChild(el("span", "tag tag-level", "Strategy: " + strat));
+        if (!isNormalMode()) {
+          const strat = data.query_strategy || "single_turn";
+          tags.appendChild(el("span", "tag tag-level", "Strategy: " + strat));
+        }
         ov.appendChild(tags);
         ov.appendChild(el("p", "muted", "Where you are (trip): " + loc));
         ov.appendChild(
@@ -1299,12 +2471,16 @@
             "Home (comparison): " + (data.home_country || "Not specified — add above for sharper contrast.")
           )
         );
-        if (data.map_coordinates_used && data.map_coordinates_used.latitude != null) {
+        if (
+          !isNormalMode() &&
+          data.map_coordinates_used &&
+          data.map_coordinates_used.latitude != null
+        ) {
           ov.appendChild(
             el(
               "p",
               "muted",
-              "Map coordinates sent to server: " +
+              "Coordinates sent to server: " +
                 data.map_coordinates_used.latitude +
                 ", " +
                 data.map_coordinates_used.longitude +
@@ -1315,11 +2491,8 @@
         if (data.research_from_tools_error) {
           ov.appendChild(el("p", "muted", "Research tools error: " + data.research_from_tools_error));
         }
-        if (data.research_from_tools_digest) {
-          const d = data.research_from_tools_digest;
-          ov.appendChild(
-            el("p", "muted", "Places/web research (excerpt): " + (d.length > 500 ? d.slice(0, 500) + "…" : d))
-          );
+        if (data.research_from_tools_digest || data.research_from_tools_structured) {
+          appendPlacesWebResearch(ov, data);
         }
 
         if (data.llm && data.llm.summary_for_traveler) {
@@ -1348,7 +2521,9 @@
               "muted",
               data.llm_skip_reason === "missing_openai_api_key"
                 ? "Contrast bullets appear when OpenAI is configured."
-                : "No contrast bullets in this response (see raw JSON if the model omitted the field)."
+                : isNormalMode()
+                  ? "No comparison notes in this response."
+                  : "No contrast bullets in this response (see raw JSON if the model omitted the field)."
             )
           );
         }
@@ -1361,8 +2536,9 @@
         }
 
         if (citIntro) {
-          citIntro.textContent =
-            "Trip-specific framing is shown first when the model returns it. Raw excerpts are a small keyword-matched corpus — expand below.";
+          citIntro.textContent = isNormalMode()
+            ? "When available, trip-specific notes appear above the source list."
+            : "Trip-specific framing is shown first when the model returns it. Raw excerpts are a small keyword-matched corpus — expand below.";
         }
         (data.citations || []).forEach((c) => {
           const li = document.createElement("li");
@@ -1383,8 +2559,13 @@
           } else {
             scBody.hidden = true;
             scFb.hidden = false;
-            scFb.textContent =
-              data.llm_skip_reason === "missing_openai_api_key"
+            scFb.textContent = isNormalMode()
+              ? data.llm_skip_reason === "missing_openai_api_key"
+                ? "Trip-specific notes are not available for this run."
+                : data.llm_error
+                  ? "Trip-specific notes were not generated for this run."
+                  : "No trip-specific notes for this turn."
+              : data.llm_skip_reason === "missing_openai_api_key"
                 ? "Trip-specific notes on these excerpts need OpenAI on the server. Raw excerpts are in the section below — expand to read them."
                 : data.llm_error
                   ? "Model notes were not generated (" + data.llm_error + "). Expand below for raw retrieval excerpts."
@@ -1413,7 +2594,11 @@
           (data.llm && data.llm.disclaimer) || data.disclaimer || "Educational use only — not a diagnosis.";
         db.textContent = disc;
 
-        if (Array.isArray(data.retrieval_queries_used) && data.retrieval_queries_used.length) {
+        if (
+          !isNormalMode() &&
+          Array.isArray(data.retrieval_queries_used) &&
+          data.retrieval_queries_used.length
+        ) {
           const rq = document.createElement("p");
           rq.className = "muted";
           rq.style.marginTop = "0.35rem";
@@ -1422,13 +2607,14 @@
           ov.appendChild(rq);
         }
 
+        renderNearbyCarePanel(data);
         renderTreatmentCostPanel(data);
         renderPharmacyOtcPanel(data);
 
         const llmPromptPre = document.getElementById("llmPromptPre");
         const llmPromptDetails = document.getElementById("llmPromptDetails");
         if (llmPromptPre && llmPromptDetails) {
-          if (data.llm_api_prompt) {
+          if (!isNormalMode() && data.llm_api_prompt) {
             const p = data.llm_api_prompt;
             llmPromptPre.textContent =
               "POST " +
@@ -1454,20 +2640,86 @@
         jsonEl.textContent = JSON.stringify(forJson, null, 2);
       }
 
-      function updateChatChrome() {
-        chatShell.hidden = false;
+      function updateChatChromeForSession() {
+        if (!chatInput || !chatSend || !chatHint) return;
+        const lockNotice = document.getElementById("oneTurnSendLockNotice");
+        if (isDemoOneTurnByStrategy()) {
+          const sent = !!sessionMessage.trim();
+          chatInput.disabled = sent;
+          chatSend.disabled = sent;
+          if (sent) {
+            chatHint.textContent =
+              "Your message is in the thread — use Generate report for the full write-up.";
+            if (lockNotice) {
+              lockNotice.hidden = false;
+              lockNotice.textContent =
+                "Send stays off in this demo: the query strategy is one round, so only one traveler message is collected before Generate report.";
+            }
+          } else {
+            chatHint.textContent =
+              "This demo is one round: review or edit the sample in the box, press Send once, then use Generate report.";
+            if (lockNotice) {
+              lockNotice.hidden = true;
+              lockNotice.textContent = "";
+            }
+          }
+          return;
+        }
+        if (lockNotice) {
+          lockNotice.hidden = true;
+          lockNotice.textContent = "";
+        }
         if (apiOpenAiConfigured) {
           chatInput.disabled = false;
           chatSend.disabled = false;
-          chatHint.textContent =
-            "Replies use OpenAI with your full chat history and the original story. Each send should answer your latest line — say what changed or what you still need.";
+          chatHint.textContent = isNormalMode()
+            ? "Describe what is happening and press Send. When you are ready, click Generate report for the full write-up."
+            : "Send follow-ups to refine the story, then click Generate report.";
         } else {
           chatInput.disabled = true;
           chatSend.disabled = true;
           chatHint.textContent =
-            "Follow-up chat needs OPENAI_API_KEY on the server. You can still read panels and raw JSON.";
+            "Configure OPENAI_API_KEY on the server for chat and for the structured report.";
         }
       }
+
+      function closeSessionModalFn() {
+        setFlowStep(0);
+        document.body.style.overflow = "";
+      }
+      if (closeSessionModalBtn) closeSessionModalBtn.addEventListener("click", closeSessionModalFn);
+      if (flowBackToChatBtn) {
+        flowBackToChatBtn.addEventListener("click", () => {
+          setFlowStep(1);
+          if (apiOpenAiConfigured && !isDemoOneTurnByStrategy()) {
+            try {
+              chatInput.focus();
+            } catch (err) {
+              /* ignore */
+            }
+          }
+        });
+      }
+      if (flowViewReportBtn) {
+        flowViewReportBtn.addEventListener("click", () => {
+          setFlowStep(2);
+          try {
+            document.getElementById("tcFlowSlideReport")?.scrollTo({ top: 0, behavior: "smooth" });
+          } catch (err) {
+            /* ignore */
+          }
+        });
+      }
+
+      function syncReportNavButtons() {
+        if (flowViewReportBtn) flowViewReportBtn.hidden = out.hidden;
+      }
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && tcFlowStep > 0) {
+          e.preventDefault();
+          closeSessionModalFn();
+        }
+      });
 
       async function postAssist() {
         const r = await fetch("/api/assist", {
@@ -1479,10 +2731,10 @@
             location: assistTravelLocation(),
             home_country: document.getElementById("homeCountry").value.trim(),
             chat_history: sessionChatHistory,
-            query_strategy: document.getElementById("queryStrategy").value,
+            query_strategy: getEffectiveQueryStrategy(),
             map_latitude: lastMapLat != null ? lastMapLat : null,
             map_longitude: lastMapLng != null ? lastMapLng : null,
-            research_tools: document.getElementById("researchTools").checked,
+            research_tools: getEffectiveResearchTools(),
             prior_treatment_plan_options: lastTreatmentPlanOptions,
             selected_treatment_plan_id:
               (document.querySelector('input[name="treatmentPlanPick"]:checked') || {}).value || "",
@@ -1492,63 +2744,148 @@
         return r.json();
       }
 
-      goBtn.addEventListener("click", async () => {
-        const msg = document.getElementById("msg").value.trim();
-        if (!msg) {
-          alert("Please describe what is happening before getting guidance.");
-          return;
-        }
-        await refreshApiFlags();
-        goBtn.disabled = true;
-        out.hidden = true;
-        if (abstainBanner) {
-          abstainBanner.hidden = true;
-          abstainBanner.textContent = "";
-        }
-        sessionMessage = msg;
-        sessionChatHistory = [];
-        lastTreatmentPlanOptions = [];
-        chatMessages.innerHTML = "";
-        const trClear = document.getElementById("panelTreatmentRadios");
-        if (trClear) trClear.innerHTML = "";
-        try {
-          const data = await postAssist();
-          renderAssistResponse(data);
-          out.hidden = false;
-          updateChatChrome();
-          appendAssistantChatBubble(data);
-          sessionChatHistory.push({ role: "assistant", content: assistantTurnPlainText(data) });
-          if (data.emergency) {
-            banner.classList.add("emergency");
-            banner.textContent =
-              "Possible emergency pattern — if this is happening now, call your local emergency number or go to the nearest appropriate ER.";
-          } else {
-            banner.classList.remove("emergency");
-            banner.textContent =
-              "Use your destination’s official emergency numbers for urgent medical issues. This tool does not replace emergency services.";
+      if (startSessionBtn) {
+        startSessionBtn.addEventListener("click", async () => {
+          await refreshApiFlags();
+          if (!isNormalMode()) {
+            const ex = document.getElementById("examplePrompt").value;
+            if (!ex || !EXAMPLE_SCENARIOS[ex]) {
+              alert("In demo mode, choose a sample prompt from the dropdown first.");
+              return;
+            }
           }
-        } catch (e) {
-          jsonEl.textContent = String(e);
-          out.hidden = false;
-          chatShell.hidden = true;
-        } finally {
-          goBtn.disabled = false;
-        }
-      });
+          out.hidden = true;
+          if (flowViewReportBtn) flowViewReportBtn.hidden = true;
+          sessionChatHistory = [];
+          lastTreatmentPlanOptions = [];
+          chatMessages.innerHTML = "";
+          const trClear = document.getElementById("panelTreatmentRadios");
+          if (trClear) trClear.innerHTML = "";
+          if (abstainBanner) {
+            abstainBanner.hidden = true;
+            abstainBanner.textContent = "";
+          }
+
+          if (!isNormalMode()) {
+            const ex = document.getElementById("examplePrompt").value;
+            const x = EXAMPLE_SCENARIOS[ex];
+            const msgEl = document.getElementById("msg");
+            if (isDemoOneTurnByStrategy()) {
+              sessionMessage = "";
+              if (msgEl) msgEl.value = "";
+              chatInput.value = (x && x.message) || "";
+            } else {
+              sessionMessage = (x && x.message) || "";
+              if (msgEl) msgEl.value = sessionMessage;
+              chatInput.value = "";
+            }
+          } else {
+            sessionMessage = "";
+            const msgEl = document.getElementById("msg");
+            if (msgEl) msgEl.value = "";
+            chatInput.value = "";
+          }
+
+          appendChatBubble("assistant", SESSION_GREETING);
+          setFlowStep(1);
+          updateChatChromeForSession();
+          if (isDemoOneTurnByStrategy()) {
+            try {
+              chatInput.focus();
+            } catch (err) {
+              /* ignore */
+            }
+          } else if (apiOpenAiConfigured) {
+            try {
+              chatInput.focus();
+            } catch (err) {
+              /* ignore */
+            }
+          }
+        });
+      }
+
+      if (generateReportBtn) {
+        generateReportBtn.addEventListener("click", async () => {
+          await refreshApiFlags();
+          if (!sessionMessage.trim()) {
+            alert(
+              isNormalMode()
+                ? "Type your situation in chat and press Send first, then generate the report."
+                : isDemoOneTurnByStrategy()
+                  ? "Press Send once in chat to submit the sample message, then generate the report."
+                  : "Send at least one chat message with your story before generating the report."
+            );
+            return;
+          }
+          generateReportBtn.disabled = true;
+          try {
+            const data = await postAssist();
+            renderAssistResponse(data);
+            out.hidden = false;
+            syncReportNavButtons();
+            setFlowStep(2);
+            try {
+              document.getElementById("tcFlowSlideReport")?.scrollTo({ top: 0, behavior: "smooth" });
+            } catch (e) {
+              /* ignore */
+            }
+            try {
+              sessionModal?.scrollIntoView({ behavior: "smooth", block: "start" });
+            } catch (e) {
+              /* ignore */
+            }
+            if (data.emergency) {
+              banner.classList.add("emergency");
+              banner.textContent =
+                "Possible emergency pattern — if this is happening now, call your local emergency number or go to the nearest appropriate ER.";
+            } else {
+              banner.classList.remove("emergency");
+              banner.textContent =
+                "Use your destination’s official emergency numbers for urgent medical issues. This tool does not replace emergency services.";
+            }
+          } catch (e) {
+            jsonEl.textContent = String(e);
+            alert(String(e));
+          } finally {
+            generateReportBtn.disabled = false;
+          }
+        });
+      }
 
       chatSend.addEventListener("click", async () => {
         const text = chatInput.value.trim();
-        if (!text || !sessionMessage) return;
+        if (!text) return;
+
+        if (isDemoOneTurnByStrategy()) {
+          if (sessionMessage.trim()) return;
+          appendChatBubble("user", text);
+          sessionMessage = text;
+          const msgEl = document.getElementById("msg");
+          if (msgEl) msgEl.value = text;
+          chatInput.value = "";
+          updateChatChromeForSession();
+          alert(
+            "Send is now disabled.\n\nThis demo uses a one-turn query strategy (single-turn, single-turn + tools, or unsolvable-aware): only one traveler message is collected before you run Generate report."
+          );
+          return;
+        }
+
         await refreshApiFlags();
         if (!apiOpenAiConfigured) return;
         chatInput.value = "";
         appendChatBubble("user", text);
-        sessionChatHistory.push({ role: "user", content: text });
+        if (!sessionMessage) {
+          sessionMessage = text;
+          const msgEl = document.getElementById("msg");
+          if (msgEl) msgEl.value = text;
+        } else {
+          sessionChatHistory.push({ role: "user", content: text });
+        }
         chatSend.disabled = true;
         chatInput.disabled = true;
         try {
           const data = await postAssist();
-          renderAssistResponse(data);
           appendAssistantChatBubble(data);
           sessionChatHistory.push({ role: "assistant", content: assistantTurnPlainText(data) });
         } catch (e) {
@@ -1557,6 +2894,7 @@
         } finally {
           chatSend.disabled = false;
           chatInput.disabled = false;
+          updateChatChromeForSession();
           chatInput.focus();
         }
       });
@@ -1572,7 +2910,7 @@
       if (refineTreatmentCostBtn) {
         refineTreatmentCostBtn.addEventListener("click", async () => {
           if (!sessionMessage.trim()) {
-            alert("Run Get guidance first.");
+            alert("Generate a report first (or send chat messages in normal mode).");
             return;
           }
           const picked = document.querySelector('input[name="treatmentPlanPick"]:checked');
@@ -1589,6 +2927,9 @@
           try {
             const data = await postAssist();
             renderAssistResponse(data);
+            out.hidden = false;
+            syncReportNavButtons();
+            setFlowStep(2);
           } catch (e) {
             alert(String(e));
           } finally {
@@ -1597,16 +2938,20 @@
         });
       }
 
-      loadConfig()
-        .then(() => initMap())
-        .then(() => {
-          if (!map) return;
-          const list = document.getElementById("places");
-          list.innerHTML = `<li class="muted">Search for an address or landmark above to see nearby hospitals.</li>`;
-        })
-        .catch((e) => {
-          banner.textContent = "Config/load error: " + e;
+      setFlowStep(0);
+      syncReportNavButtons();
+
+      loadConfig().catch((e) => {
+        banner.textContent = "Config/load error: " + e;
+        renderApiIndicators({
+          openAiConfigured: false,
+          mapsEnabled: false,
+          placesServerConfigured: false,
+          webSearchConfigured: false,
+          serperConfigured: false,
+          serpapiConfigured: false,
         });
+      });
     </script>
   </body>
 </html>

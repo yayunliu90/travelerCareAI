@@ -2,8 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import math
+import time
+from datetime import datetime
 from typing import Any
+from zoneinfo import ZoneInfo
+
+logger = logging.getLogger(__name__)
 
 import httpx
 
@@ -27,7 +33,9 @@ async def geocode_address(address: str, api_key: str) -> tuple[float, float] | N
         )
         r.raise_for_status()
         data = r.json()
-    if data.get("status") != "OK":
+    status = data.get("status")
+    if status != "OK":
+        logger.warning("geocode Maps status=%s (not OK)", status)
         return None
     results = data.get("results") or []
     if not results:
@@ -37,6 +45,54 @@ async def geocode_address(address: str, api_key: str) -> tuple[float, float] | N
     if lat is None or lng is None:
         return None
     return float(lat), float(lng)
+
+
+async def fetch_destination_local_context(
+    latitude: float,
+    longitude: float,
+    api_key: str,
+) -> dict[str, Any] | None:
+    """
+    Approximate local civil time at the trip coordinates via Google Time Zone API + zoneinfo.
+
+    Returns a small dict for LLM/research payloads (not a substitute for facility opening hours).
+    """
+    if not (api_key or "").strip():
+        return None
+    ts = int(time.time())
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        r = await client.get(
+            "https://maps.googleapis.com/maps/api/timezone/json",
+            params={
+                "location": f"{latitude},{longitude}",
+                "timestamp": ts,
+                "key": api_key.strip(),
+            },
+        )
+        r.raise_for_status()
+        data = r.json()
+    if data.get("status") != "OK":
+        logger.warning("Google Time Zone API status=%s", data.get("status"))
+        return None
+    tz_id = str(data.get("timeZoneId") or "").strip()
+    if not tz_id:
+        return None
+    try:
+        zi = ZoneInfo(tz_id)
+        now_local = datetime.now(zi)
+    except Exception:
+        logger.warning("Could not load ZoneInfo for %r", tz_id[:80])
+        return None
+    raw_off = int(data.get("rawOffset") or 0)
+    dst_off = int(data.get("dstOffset") or 0)
+    return {
+        "timezone_id": tz_id,
+        "timezone_name": (str(data.get("timeZoneName") or "").strip()[:120] or None),
+        "local_datetime_iso": now_local.replace(microsecond=0).isoformat(),
+        "local_weekday_en": now_local.strftime("%A"),
+        "local_hour_24": now_local.hour,
+        "utc_offset_seconds": raw_off + dst_off,
+    }
 
 
 async def nearby_medical_places(
@@ -73,6 +129,7 @@ async def nearby_medical_places(
         data = r.json()
     status = data.get("status")
     if status not in ("OK", "ZERO_RESULTS"):
+        logger.warning("Places Nearby Search status=%s", status)
         return {"error": f"Places Nearby status: {status}", "places": [], "raw_status": status}
 
     out: list[dict[str, Any]] = []
@@ -134,6 +191,7 @@ async def _place_details_reviews(
         if close:
             await client.aclose()
     if data.get("status") != "OK":
+        logger.debug("Place Details status=%s place_id=%s…", data.get("status"), (place_id or "")[:12])
         return []
     res = data.get("result") or {}
     snippets: list[dict[str, Any]] = []
