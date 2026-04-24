@@ -114,7 +114,11 @@ Destination local time (**destination_local_context** in the user JSON):
 - **Do not invent** opening hours, appointment rules, or schedules for named facilities unless they appear in **research_from_tools_digest** or **research_from_tools_structured**. If **open_now** is present on a facility record from Places, you may describe it as a tool snapshot, not a guarantee of future hours."""
     return f"""You are a decision-support assistant for international travelers.
 You are NOT a doctor and do NOT provide a medical diagnosis.
-Follow the server's rule-based care_level and emergency flag strictly — do not contradict them.
+The user JSON includes **server_decision** from a fast keyword triage layer (not a diagnosis).
+**Default:** align treatment_plan_options, tone, urgency, and nearby_care_options with **server_decision**.
+**Exception:** if the traveler narrative (including chat history and tool research) **clearly warrants different urgency**, you may disagree by outputting **severity_assessment** with **agrees_with_server_triage: false**, a valid **suggested_care_level**, optional **suggested_emergency**, and **rationale_for_adjustment** (≥8 characters, in output_language) explaining why for the traveler.
+When you disagree, keep **summary_for_traveler**, **what_to_do_next**, and facility picks **consistent** with your suggested severity — no mixed signals.
+If **server_decision.emergency** is **true** or **care_level** is **emergency_immediate**, do **not** attempt to lower severity via **severity_assessment**; treat the server emergency signal as authoritative for this API.
 
 Current trip location (from client):
 {loc_block}
@@ -325,6 +329,44 @@ def _normalize_image_url_pairs(raw: Any) -> list[dict[str, str]]:
     return out
 
 
+def _normalize_severity_assessment(raw: Any) -> dict[str, Any] | None:
+    """Keep only a well-formed severity_assessment for the client."""
+    if not isinstance(raw, dict):
+        return None
+    agrees = raw.get("agrees_with_server_triage")
+    if agrees is not False:
+        if agrees is True:
+            return {"agrees_with_server_triage": True}
+        return None
+
+    level_raw = raw.get("suggested_care_level")
+    if not isinstance(level_raw, str) or level_raw.strip() not in (
+        "emergency_immediate",
+        "er_hospital",
+        "clinic",
+        "pharmacy_self_care",
+    ):
+        return None
+    level = level_raw.strip()
+
+    se = raw.get("suggested_emergency")
+    suggested_emergency: bool | None = se if isinstance(se, bool) else None
+
+    rationale = raw.get("rationale_for_adjustment")
+    rationale_s = str(rationale).strip()[:800] if rationale is not None else ""
+    if len(rationale_s) < 8:
+        return None
+
+    out: dict[str, Any] = {
+        "agrees_with_server_triage": False,
+        "suggested_care_level": level,
+        "rationale_for_adjustment": rationale_s,
+    }
+    if suggested_emergency is not None:
+        out["suggested_emergency"] = suggested_emergency
+    return out
+
+
 def _normalize_traveler_llm_json(obj: dict[str, Any]) -> dict[str, Any]:
     obj.setdefault("abstain", False)
     ar = obj.get("abstention_reason")
@@ -346,6 +388,11 @@ def _normalize_traveler_llm_json(obj: dict[str, Any]) -> dict[str, Any]:
     obj["medication_reference_images"] = _normalize_image_url_pairs(obj.get("medication_reference_images"))
     obj["nearby_care_options"] = _normalize_nearby_care_options(obj.get("nearby_care_options"))
     obj["nearby_care_caveats"] = _normalize_string_list(obj.get("nearby_care_caveats"), max_items=2, max_len=500)
+    sa = _normalize_severity_assessment(obj.get("severity_assessment"))
+    if sa:
+        obj["severity_assessment"] = sa
+    else:
+        obj.pop("severity_assessment", None)
     return obj
 
 
@@ -512,7 +559,8 @@ async def augment_with_openai(
             "nearby_care_options, nearby_care_caveats, questions_to_clarify, and sources_context_for_traveler to incorporate any NEW "
             "symptoms, timing, or questions from that message. If prior_assistant_message_excerpt is present, treat it as "
             "what they already saw: do not repeat the same blocks verbatim; add delta guidance, corrections, or narrower "
-            "next steps. Still follow server_decision strictly."
+            "next steps. Align with server_decision unless **severity_assessment** records a deliberate disagreement; "
+            "in all cases keep the JSON internally consistent."
         )
         if home_set:
             task += (
@@ -548,6 +596,11 @@ async def augment_with_openai(
         " Include sources_context_for_traveler as a list of 1–4 strings (use an empty list only when "
         "citations_from_retrieval is empty): each line should connect retrieval themes to this traveler's trip text, "
         "location, home context, and digest when present; acknowledge when snippets are generic."
+    )
+    task += (
+        " SEVERITY: Output **severity_assessment** every turn. Normally set **agrees_with_server_triage: true** "
+        "(other fields may be omitted). Use **agrees_with_server_triage: false** only when the narrative clearly "
+        "warrants a different **suggested_care_level** than server_decision; then include **rationale_for_adjustment**."
     )
 
     user_blob: dict[str, Any] = {
@@ -666,6 +719,12 @@ async def augment_with_openai(
             ],
             "medication_reference_links": [{"title": "string", "url": "string (https only, grounded)"}],
             "medication_reference_images": [{"caption": "string", "url": "string (https only, from tools only)"}],
+            "severity_assessment": {
+                "agrees_with_server_triage": "boolean (default true; false only when you disagree with keyword triage)",
+                "suggested_care_level": "emergency_immediate | er_hospital | clinic | pharmacy_self_care (required when agrees is false)",
+                "suggested_emergency": "boolean|null (when disagreeing, set true if EMS/ER now is warranted)",
+                "rationale_for_adjustment": "string (required when agrees is false; ≥8 chars; output_language)",
+            },
             "disclaimer": "string",
 
         },
@@ -708,6 +767,9 @@ async def augment_with_openai(
             raise
         data = r.json()
         content = data["choices"][0]["message"]["content"]
+        prompt_meta["assistant_message"] = _truncate_prompt_for_response(
+            str(content) if content is not None else ""
+        )
         parsed = json.loads(content)
         if isinstance(parsed, dict):
             out = _normalize_traveler_llm_json(parsed)
@@ -722,38 +784,34 @@ async def augment_with_openai(
         return parsed, prompt_meta
 
 
-async def plan_retrieval_subqueries(*, user_text: str) -> list[str]:
+async def plan_retrieval_subqueries(*, user_text: str) -> tuple[list[str], dict[str, Any] | None]:
     """LLM proposes extra corpus search strings (internal 'tool' step; corpus keywords are English)."""
     key = os.getenv("OPENAI_API_KEY", "").strip()
     if not key:
-        return []
+        return [], None
 
+    system_planner = (
+        "You help plan keyword searches for a tiny English travel-health text corpus (educational, not clinical). "
+        "Output valid JSON only."
+    )
+    user_planner_inner = {
+        "traveler_case_text": user_text[:6000],
+        "task": (
+            "Propose 2-4 short English search phrases (keywords, not full sentences) to retrieve "
+            "relevant corpus lines about access to care, insurance, emergencies, pharmacies, or heat illness."
+        ),
+        "schema": {"retrieval_queries": ["string"], "notes": "string"},
+    }
+    user_planner = json.dumps(user_planner_inner, ensure_ascii=False)
+    model_name = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
+    temperature = 0.15
     payload = {
-        "model": os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-        "temperature": 0.15,
+        "model": model_name,
+        "temperature": temperature,
         "response_format": {"type": "json_object"},
         "messages": [
-            {
-                "role": "system",
-                "content": (
-                    "You help plan keyword searches for a tiny English travel-health text corpus (educational, not clinical). "
-                    "Output valid JSON only."
-                ),
-            },
-            {
-                "role": "user",
-                "content": json.dumps(
-                    {
-                        "traveler_case_text": user_text[:6000],
-                        "task": (
-                            "Propose 2-4 short English search phrases (keywords, not full sentences) to retrieve "
-                            "relevant corpus lines about access to care, insurance, emergencies, pharmacies, or heat illness."
-                        ),
-                        "schema": {"retrieval_queries": ["string"], "notes": "string"},
-                    },
-                    ensure_ascii=False,
-                ),
-            },
+            {"role": "system", "content": system_planner},
+            {"role": "user", "content": user_planner},
         ],
     }
 
@@ -778,5 +836,14 @@ async def plan_retrieval_subqueries(*, user_text: str) -> list[str]:
             if isinstance(item, str) and item.strip():
                 out.append(item.strip()[:200])
     out = out[:5]
+    planner_meta: dict[str, Any] = {
+        "model": model_name,
+        "temperature": temperature,
+        "request_messages": [
+            {"role": "system", "content": _truncate_prompt_for_response(system_planner)},
+            {"role": "user", "content": _truncate_prompt_for_response(user_planner)},
+        ],
+        "assistant_message": _truncate_prompt_for_response(str(content) if content is not None else ""),
+    }
     logger.debug("plan_retrieval_subqueries returned %d queries", len(out))
-    return out
+    return out, planner_meta

@@ -18,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app import llm, places_client, rag, research_agent
+from app.severity_resolution import merge_effective_severity
 from app.logging_config import configure_logging
 from app.triage import rule_triage
 
@@ -202,28 +203,31 @@ async def assist(body: AssistRequest) -> dict:
     assist_activity_log: list[dict[str, Any]] = []
     planned_subqueries: list[str] = []
     retrieval_queries_used: list[str] | None = None
+    corpus_planner_llm: dict[str, Any] | None = None
     if strategy == "single_turn_tools" and openai_key:
         try:
-            planned_subqueries = await llm.plan_retrieval_subqueries(user_text=combined)
+            planned_subqueries, corpus_planner_llm = await llm.plan_retrieval_subqueries(user_text=combined)
         except Exception:  # noqa: BLE001
             planned_subqueries = []
+            corpus_planner_llm = None
         queries = [rag_query, combined] + [q for q in planned_subqueries if q and q.strip()]
         chunks = rag.retrieve_merged(queries, k_per_query=3, max_chunks=12)
         retrieval_queries_used = queries[:8]
-        assist_activity_log.append(
-            {
-                "phase": "corpus_retrieval",
-                "kind": "internal_tools",
-                "title": "Extra corpus keyword searches (single_turn_tools)",
-                "detail": (
-                    "A small OpenAI call proposed English keyword phrases; the server merged retrieval "
-                    "from those phrases plus your case text and trip/home context."
-                ),
-                "llm_planned_queries": [str(q)[:220] for q in planned_subqueries[:8]],
-                "queries_run": [str(q)[:220] for q in (retrieval_queries_used or [])[:10]],
-                "chunks_retrieved": len(chunks),
-            }
-        )
+        corpus_entry: dict[str, Any] = {
+            "phase": "corpus_retrieval",
+            "kind": "internal_tools",
+            "title": "Extra corpus keyword searches (single_turn_tools)",
+            "detail": (
+                "A small OpenAI call proposed English keyword phrases; the server merged retrieval "
+                "from those phrases plus your case text and trip/home context."
+            ),
+            "llm_planned_queries": [str(q)[:220] for q in planned_subqueries[:8]],
+            "queries_run": [str(q)[:220] for q in (retrieval_queries_used or [])[:10]],
+            "chunks_retrieved": len(chunks),
+        }
+        if corpus_planner_llm:
+            corpus_entry["llm_planner_exchange"] = corpus_planner_llm
+        assist_activity_log.append(corpus_entry)
     else:
         chunks = rag.retrieve(rag_query, k=4)
 
@@ -335,6 +339,13 @@ async def assist(body: AssistRequest) -> dict:
             "If you may be having a medical emergency, contact local emergency services or go to the nearest "
             "appropriate emergency department, using the official numbers for your jurisdiction."
         ),
+        "severity_source": "rules",
+        "rule_triage": {
+            "care_level": rules.care_level,
+            "emergency": rules.emergency,
+            "matched_rules": list(rules.matched_rules),
+            "rationale": list(rules.rationale),
+        },
     }
     if retrieval_queries_used is not None:
         base["retrieval_queries_used"] = retrieval_queries_used
@@ -372,6 +383,18 @@ async def assist(body: AssistRequest) -> dict:
                 destination_local_context=destination_local_context,
             )
             base["llm"] = llm_out
+            if isinstance(llm_out, dict):
+                merged = merge_effective_severity(rules, llm_out)
+                base["care_level"] = merged["care_level"]
+                base["emergency"] = merged["emergency"]
+                base["severity_source"] = merged["severity_source"]
+                base["rule_triage"] = merged["rule_triage"]
+                if merged.get("llm_severity_override_rejected"):
+                    base["llm_severity_override_rejected"] = True
+                    base["llm_severity_override_reject_reason"] = merged["llm_severity_override_reject_reason"]
+                else:
+                    base.pop("llm_severity_override_rejected", None)
+                    base.pop("llm_severity_override_reject_reason", None)
             if llm_prompt_meta:
                 base["llm_api_prompt"] = llm_prompt_meta
             if llm_out is not None and llm_prompt_meta:
@@ -385,6 +408,11 @@ async def assist(body: AssistRequest) -> dict:
                             "OpenAI produced the structured traveler JSON (summary, next steps, "
                             "healthcare contrast, treatment options, costs, pharmacy fields when applicable)."
                         ),
+                        "request_messages": [
+                            {"role": "system", "content": llm_prompt_meta.get("system")},
+                            {"role": "user", "content": llm_prompt_meta.get("user")},
+                        ],
+                        "response_message": llm_prompt_meta.get("assistant_message"),
                     }
                 )
         except Exception as e:  # noqa: BLE001 — surface to client for class debugging

@@ -90,6 +90,30 @@
         border-color: rgba(239, 68, 68, 0.65);
         color: #7f1d1d;
       }
+      .panel-overview-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem 1rem;
+        margin-bottom: 0.4rem;
+      }
+      .panel-overview-toolbar h3 {
+        margin: 0;
+      }
+      .panel-overview-toolbar .secondary {
+        margin-top: 0;
+        margin-left: 0;
+      }
+      .one-turn-step-banner {
+        margin: 0.5rem 0.75rem 0.45rem;
+        background: linear-gradient(135deg, rgba(224, 242, 254, 0.98), rgba(219, 234, 254, 0.92));
+        border-color: rgba(14, 165, 233, 0.45);
+        color: #0c4a6e;
+        font-size: 0.86rem;
+        line-height: 1.45;
+        font-weight: 600;
+      }
       label {
         display: block;
         font-weight: 600;
@@ -471,6 +495,46 @@
       .chat-contrast-ul li {
         margin: 0.25rem 0;
       }
+      .tc-thinking-bubble .tc-thinking-body {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        color: #64748b;
+        font-size: 0.88rem;
+      }
+      .tc-thinking-label {
+        font-style: italic;
+      }
+      .tc-thinking-dots {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.18rem;
+      }
+      .tc-thinking-dot {
+        width: 0.38rem;
+        height: 0.38rem;
+        border-radius: 50%;
+        background: #64748b;
+        animation: tc-thinking-dot 1.05s ease-in-out infinite;
+      }
+      .tc-thinking-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .tc-thinking-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes tc-thinking-dot {
+        0%,
+        100% {
+          opacity: 0.2;
+          transform: translateY(0);
+        }
+        40% {
+          opacity: 1;
+          transform: translateY(-3px);
+        }
+      }
       .cost-table {
         width: 100%;
         border-collapse: collapse;
@@ -588,6 +652,96 @@
         padding: 0.4rem 0.5rem;
         white-space: pre-wrap;
         word-break: break-word;
+      }
+      .act-json-view-wrap {
+        margin: 0.35rem 0 0;
+        font-size: 0.72rem;
+        line-height: 1.45;
+        max-height: 220px;
+        overflow: auto;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 0.4rem 0.5rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+      .act-json-tree .act-json-details {
+        margin: 0.1rem 0 0.1rem 0.15rem;
+      }
+      .act-json-tree .act-json-details > summary {
+        cursor: pointer;
+        list-style: none;
+        font-weight: 600;
+        color: #334155;
+        user-select: none;
+      }
+      .act-json-tree .act-json-details > summary::-webkit-details-marker {
+        display: none;
+      }
+      .act-json-tree .act-json-children {
+        margin: 0.2rem 0 0.15rem 0.5rem;
+        padding-left: 0.45rem;
+        border-left: 1px solid #e2e8f0;
+      }
+      .act-json-tree .act-json-row {
+        margin: 0.15rem 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.15rem 0.35rem;
+      }
+      .act-json-tree .act-json-key {
+        color: #6d28d9;
+        font-weight: 600;
+        flex: 0 0 auto;
+      }
+      .act-json-tree .act-json-key::after {
+        content: ":";
+        color: #64748b;
+        font-weight: 500;
+        margin-left: 0.05rem;
+      }
+      .act-json-tree .act-json-valcell {
+        flex: 1 1 12rem;
+        min-width: 0;
+      }
+      .act-json-tree .act-json-str {
+        color: #0f766e;
+        word-break: break-word;
+      }
+      .act-json-tree .act-json-num {
+        color: #1d4ed8;
+      }
+      .act-json-tree .act-json-bool {
+        color: #be185d;
+      }
+      .act-json-tree .act-json-null,
+      .act-json-tree .act-json-undef {
+        color: #94a3b8;
+        font-style: italic;
+      }
+      .act-json-tree .act-json-muted {
+        color: #94a3b8;
+        font-weight: 500;
+      }
+      .act-json-raw-fallback {
+        margin-top: 0.35rem;
+        border-top: 1px dashed #e2e8f0;
+        padding-top: 0.3rem;
+      }
+      .act-json-raw-fallback > summary {
+        cursor: pointer;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #64748b;
+        list-style: none;
+      }
+      .act-json-raw-fallback > summary::-webkit-details-marker {
+        display: none;
+      }
+      .act-json-raw-fallback pre.act-json {
+        margin-top: 0.25rem;
+        max-height: 180px;
       }
       .api-status-bar {
         display: flex;
@@ -1007,6 +1161,63 @@
       body.tc-normal-mode #panelActivity {
         display: none !important;
       }
+      /* Generic message modal (replaces window.alert) */
+      .tc-message-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 12000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.25rem;
+        box-sizing: border-box;
+      }
+      .tc-message-modal[hidden] {
+        display: none !important;
+      }
+      .tc-message-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(4px);
+      }
+      .tc-message-modal-panel {
+        position: relative;
+        z-index: 1;
+        width: min(420px, 100%);
+        max-height: min(72vh, 520px);
+        overflow: auto;
+        border-radius: 16px;
+        padding: 1.15rem 1.25rem 1.2rem;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), #f8fafc);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 28px 80px -20px rgba(15, 23, 42, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+      }
+      .tc-message-modal-panel h2 {
+        margin: 0 0 0.65rem;
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #0f172a;
+      }
+      .tc-message-modal-panel p {
+        margin: 0 0 1.1rem;
+        font-size: 0.9rem;
+        line-height: 1.55;
+        color: #334155;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .tc-message-modal-panel .tc-message-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+      }
+      .tc-message-modal-panel button.primary-ok {
+        margin-top: 0;
+        padding: 0.55rem 1.35rem;
+        font-size: 0.9rem;
+      }
     </style>
   </head>
   <body class="tc-app">
@@ -1026,6 +1237,17 @@
     </p>
     <div id="statusBanner" class="banner">
       Loading configuration…
+    </div>
+
+    <div id="tcMessageModal" class="tc-message-modal" hidden role="dialog" aria-modal="true" aria-labelledby="tcMessageModalTitle">
+      <div class="tc-message-modal-backdrop" tabindex="-1"></div>
+      <div class="tc-message-modal-panel">
+        <h2 id="tcMessageModalTitle">Notice</h2>
+        <p id="tcMessageModalBody"></p>
+        <div class="tc-message-modal-actions">
+          <button type="button" class="primary-ok" id="tcMessageModalOk">OK</button>
+        </div>
+      </div>
     </div>
 
     <div id="sessionModal" class="tc-flow-shell" aria-label="TravelCare steps">
@@ -1204,15 +1426,19 @@
         <h3>What the server did (tools &amp; research)</h3>
         <p id="panelActivityIntro" class="muted" style="margin-top: 0">
           Step-by-step view of internal OpenAI calls: corpus planning, research model tool rounds (web search /
-          nearby Places), then the main traveler-facing reply. Sensitive text is truncated; this is for transparency
-          only.
+          nearby Places), then the main traveler-facing reply. JSON payloads use an expandable tree viewer; open
+          <strong>Plain JSON (copy)</strong> under each block when you need the raw string. Sensitive text is truncated;
+          this is for transparency only.
         </p>
         <div id="panelActivityBody" class="activity-log"></div>
       </div>
 
       <div class="results-grid">
         <div class="panel span-2" id="panelOverview">
-          <h3>Overview</h3>
+          <div class="panel-overview-toolbar">
+            <h3>Overview</h3>
+            <button type="button" id="downloadReportBtn" class="secondary" hidden>Download report</button>
+          </div>
           <div id="panelOverviewBody"></div>
         </div>
 
@@ -1304,6 +1530,11 @@
       </div>
     </div>
 
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
     <script>
       (function initLangDefault() {
         const el = document.getElementById("lang");
@@ -1400,6 +1631,9 @@
       let apiOpenAiConfigured = false;
       let sessionMessage = "";
       let sessionChatHistory = [];
+      /** Last assist payload (without llm_api_prompt) for PDF download */
+      let lastAssistReportData = null;
+      let lastReportLocalTimeLabel = "";
 
       let lastMapLat = null;
       let lastMapLng = null;
@@ -1446,6 +1680,7 @@
         if (landingHomeHint) landingHomeHint.hidden = nm;
         if (sessionGenerateBlurb) sessionGenerateBlurb.hidden = nm;
         syncStrategyHint();
+        updateChatChromeForSession();
       }
       document.querySelectorAll('input[name="appMode"]').forEach((r) => r.addEventListener("change", syncAppModeUi));
       syncAppModeUi();
@@ -1576,6 +1811,14 @@
 
       document.getElementById("examplePrompt").addEventListener("change", (e) => {
         applyExampleScenario(e.target.value);
+        if (!isNormalMode() && tcFlowStep === 1) {
+          const ex = e.target.value;
+          const x = EXAMPLE_SCENARIOS[ex];
+          const ci = document.getElementById("chatInput");
+          if (ci && x && x.message && !sessionMessage.trim()) {
+            ci.value = x.message;
+          }
+        }
       });
 
       function renderApiIndicators(cfg) {
@@ -1852,6 +2095,40 @@
         wrap.appendChild(body);
         chatMessages.appendChild(wrap);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      /**
+       * Placeholder row while /api/assist is in flight. Remove the returned node before rendering the real reply.
+       * @param {string} [statusLabel] — shown before the animated dots (e.g. "Thinking" vs "Preparing your report").
+       */
+      function appendThinkingChatBubble(statusLabel) {
+        const wrap = document.createElement("div");
+        wrap.className = "chat-bubble assistant tc-thinking-bubble";
+        wrap.setAttribute("aria-busy", "true");
+        wrap.appendChild(el("div", "role", "Assistant"));
+        const body = document.createElement("div");
+        body.className = "chat-assistant-body tc-thinking-body";
+        const label = document.createElement("span");
+        label.className = "tc-thinking-label";
+        label.textContent = statusLabel && String(statusLabel).trim() ? String(statusLabel).trim() : "Thinking";
+        const dots = document.createElement("span");
+        dots.className = "tc-thinking-dots";
+        dots.setAttribute("aria-hidden", "true");
+        for (let i = 0; i < 3; i++) {
+          dots.appendChild(document.createElement("span")).className = "tc-thinking-dot";
+        }
+        body.appendChild(label);
+        body.appendChild(dots);
+        wrap.appendChild(body);
+        chatMessages.appendChild(wrap);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return wrap;
+      }
+
+      function removeThinkingChatBubble(node) {
+        if (node && node.parentNode) {
+          node.parentNode.removeChild(node);
+        }
       }
 
       /** Rich assistant bubble: contrast is in a closed-by-default details element. History still uses assistantTurnPlainText. */
@@ -2310,6 +2587,198 @@
         }
       }
 
+      const ACT_JSON_MAX_DEPTH = 14;
+      const ACT_JSON_MAX_ARRAY = 100;
+      const ACT_JSON_MAX_KEYS = 80;
+      const ACT_JSON_STR_MAX = 480;
+
+      function normalizeActivityJsonInput(value) {
+        if (value === null || value === undefined) return value;
+        if (typeof value === "object") return value;
+        if (typeof value === "string") {
+          const t = value.trim();
+          if (
+            (t.startsWith("{") && t.endsWith("}")) ||
+            (t.startsWith("[") && t.endsWith("]"))
+          ) {
+            try {
+              return JSON.parse(t);
+            } catch (e) {
+              return value;
+            }
+          }
+          return value;
+        }
+        return value;
+      }
+
+      function appendJsonPrimitive(container, value) {
+        const span = document.createElement("span");
+        if (value === null) {
+          span.className = "act-json-null";
+          span.textContent = "null";
+        } else if (value === undefined) {
+          span.className = "act-json-undef";
+          span.textContent = "undefined";
+        } else if (typeof value === "boolean") {
+          span.className = "act-json-bool";
+          span.textContent = value ? "true" : "false";
+        } else if (typeof value === "number") {
+          span.className = Number.isFinite(value) ? "act-json-num" : "act-json-muted";
+          span.textContent = String(value);
+        } else if (typeof value === "string") {
+          span.className = "act-json-str";
+          const full = value;
+          const quoted = JSON.stringify(full);
+          if (quoted.length > ACT_JSON_STR_MAX) {
+            span.textContent = JSON.stringify(full.slice(0, ACT_JSON_STR_MAX)) + "…";
+            span.title = full;
+          } else {
+            span.textContent = quoted;
+          }
+        } else {
+          span.className = "act-json-muted";
+          span.textContent = JSON.stringify(String(value));
+        }
+        container.appendChild(span);
+      }
+
+      function appendJsonValue(parent, value, depth) {
+        if (depth > ACT_JSON_MAX_DEPTH) {
+          parent.appendChild(el("span", "act-json-muted", "…"));
+          return;
+        }
+        if (Array.isArray(value)) {
+          if (value.length === 0) {
+            parent.appendChild(el("span", "act-json-muted", "[]"));
+            return;
+          }
+          const det = document.createElement("details");
+          det.className = "act-json-details";
+          det.open = depth < 2;
+          const sum = document.createElement("summary");
+          sum.className = "act-json-summary";
+          sum.appendChild(document.createTextNode("Array "));
+          sum.appendChild(el("span", "act-json-num", "(" + value.length + ")"));
+          det.appendChild(sum);
+          const inner = document.createElement("div");
+          inner.className = "act-json-children";
+          const lim = Math.min(value.length, ACT_JSON_MAX_ARRAY);
+          for (let i = 0; i < lim; i++) {
+            const row = document.createElement("div");
+            row.className = "act-json-row";
+            const k = document.createElement("span");
+            k.className = "act-json-key";
+            k.textContent = String(i);
+            row.appendChild(k);
+            const vcell = document.createElement("span");
+            vcell.className = "act-json-valcell";
+            appendJsonValue(vcell, value[i], depth + 1);
+            row.appendChild(vcell);
+            inner.appendChild(row);
+          }
+          if (value.length > lim) {
+            inner.appendChild(
+              el("div", "act-json-muted", "… " + (value.length - lim) + " more items")
+            );
+          }
+          det.appendChild(inner);
+          parent.appendChild(det);
+          return;
+        }
+        if (value !== null && typeof value === "object") {
+          const keys = Object.keys(value);
+          if (keys.length === 0) {
+            parent.appendChild(el("span", "act-json-muted", "{}"));
+            return;
+          }
+          const det = document.createElement("details");
+          det.className = "act-json-details";
+          det.open = depth < 2;
+          const sum = document.createElement("summary");
+          sum.className = "act-json-summary";
+          sum.appendChild(document.createTextNode("Object "));
+          sum.appendChild(el("span", "act-json-muted", "(" + keys.length + " keys)"));
+          det.appendChild(sum);
+          const inner = document.createElement("div");
+          inner.className = "act-json-children";
+          const lim = Math.min(keys.length, ACT_JSON_MAX_KEYS);
+          for (let i = 0; i < lim; i++) {
+            const key = keys[i];
+            const row = document.createElement("div");
+            row.className = "act-json-row";
+            const k = document.createElement("span");
+            k.className = "act-json-key";
+            k.textContent = key;
+            row.appendChild(k);
+            const vcell = document.createElement("span");
+            vcell.className = "act-json-valcell";
+            appendJsonValue(vcell, value[key], depth + 1);
+            row.appendChild(vcell);
+            inner.appendChild(row);
+          }
+          if (keys.length > lim) {
+            inner.appendChild(el("div", "act-json-muted", "… " + (keys.length - lim) + " more keys"));
+          }
+          det.appendChild(inner);
+          parent.appendChild(det);
+          return;
+        }
+        appendJsonPrimitive(parent, value);
+      }
+
+      function fillActivityJsonTree(container, value) {
+        container.innerHTML = "";
+        const tree = document.createElement("div");
+        tree.className = "act-json-tree";
+        appendJsonValue(tree, value, 0);
+        container.appendChild(tree);
+      }
+
+      function appendActivityJsonPlainFallback(host, serialized) {
+        const raw = document.createElement("details");
+        raw.className = "act-json-raw-fallback";
+        const rs = document.createElement("summary");
+        rs.textContent = "Plain JSON (copy)";
+        raw.appendChild(rs);
+        const pre = document.createElement("pre");
+        pre.className = "act-json";
+        pre.textContent = serialized;
+        raw.appendChild(pre);
+        host.appendChild(raw);
+      }
+
+      function appendActivityJsonViewer(box, caption, value, maxH) {
+        if (value == null) return;
+        if (typeof value === "string" && !String(value).trim()) return;
+        if (typeof value === "object" && !Array.isArray(value) && !Object.keys(value).length) return;
+        if (Array.isArray(value) && !value.length) return;
+
+        const cap = el("p", "muted", caption);
+        cap.style.marginTop = "0.35rem";
+        cap.style.fontWeight = "600";
+        box.appendChild(cap);
+
+        const parsed = normalizeActivityJsonInput(value);
+        let serialized;
+        try {
+          if (typeof value === "string" && typeof parsed === "string") {
+            serialized = value;
+          } else {
+            serialized = JSON.stringify(parsed, null, 2);
+          }
+        } catch (e) {
+          serialized = String(value);
+        }
+
+        const wrap = document.createElement("div");
+        wrap.className = "act-json-view-wrap";
+        wrap.style.maxHeight = maxH || "220px";
+        fillActivityJsonTree(wrap, parsed);
+        box.appendChild(wrap);
+        appendActivityJsonPlainFallback(box, serialized);
+      }
+
       function renderAssistActivityLog(data) {
         const panel = document.getElementById("panelActivity");
         const body = document.getElementById("panelActivityBody");
@@ -2327,6 +2796,9 @@
         }
         panel.hidden = false;
         body.innerHTML = "";
+        const appendPreBlock = (box, caption, value, maxH) => {
+          appendActivityJsonViewer(box, caption, value, maxH);
+        };
         log.forEach((step, idx) => {
           const box = document.createElement("div");
           box.className = "activity-step";
@@ -2363,14 +2835,7 @@
             box.appendChild(ul);
           }
           if (step.summary && typeof step.summary === "object") {
-            const cap = el("p", "muted", "Tool result (summary)");
-            cap.style.marginTop = "0.35rem";
-            cap.style.fontWeight = "600";
-            box.appendChild(cap);
-            const pre = document.createElement("pre");
-            pre.className = "act-json";
-            pre.textContent = JSON.stringify(step.summary, null, 2);
-            box.appendChild(pre);
+            appendPreBlock(box, "Tool result (summary)", step.summary, "220px");
           }
           if (Array.isArray(step.llm_planned_queries) && step.llm_planned_queries.length) {
             const cap = el("p", "muted", "LLM-planned corpus queries");
@@ -2399,27 +2864,300 @@
             step.queries_run.forEach((q) => ul.appendChild(el("li", "", String(q))));
             box.appendChild(ul);
           }
+          if (step.llm_planner_exchange && typeof step.llm_planner_exchange === "object") {
+            const px = step.llm_planner_exchange;
+            const bits = [];
+            if (px.model) bits.push("model: " + String(px.model));
+            if (px.temperature != null && px.temperature !== "") {
+              bits.push("temperature: " + String(px.temperature));
+            }
+            if (bits.length) {
+              const p = el("p", "muted", bits.join(" · "));
+              p.style.marginTop = "0.35rem";
+              box.appendChild(p);
+            }
+            appendPreBlock(box, "Corpus planner — request messages (as sent)", px.request_messages, "260px");
+            appendPreBlock(box, "Corpus planner — assistant message (raw JSON)", px.assistant_message, "200px");
+          }
+          if (Array.isArray(step.request_messages) && step.request_messages.length) {
+            appendPreBlock(box, "LLM request (messages sent)", step.request_messages, "300px");
+          }
+          if (step.response && typeof step.response === "object") {
+            appendPreBlock(box, "LLM response (assistant turn)", step.response, "260px");
+          }
+          if (step.response_message && String(step.response_message).trim()) {
+            appendPreBlock(
+              box,
+              "LLM response (raw JSON from main traveler model)",
+              String(step.response_message),
+              "360px"
+            );
+          }
+          if (step.assistant_raw_json && String(step.assistant_raw_json).trim()) {
+            appendPreBlock(
+              box,
+              "Research model — final structured JSON (raw)",
+              String(step.assistant_raw_json),
+              "380px"
+            );
+          }
           const det = document.createElement("details");
           det.style.marginTop = "0.35rem";
           const sum = document.createElement("summary");
-          sum.textContent = "Raw step JSON";
+          sum.textContent = "Raw step JSON (tree)";
           sum.style.cursor = "pointer";
           sum.style.fontSize = "0.78rem";
           sum.style.fontWeight = "600";
           sum.style.color = "#64748b";
           det.appendChild(sum);
-          const preFull = document.createElement("pre");
-          preFull.className = "act-json";
-          preFull.style.maxHeight = "160px";
+          const wrapFull = document.createElement("div");
+          wrapFull.className = "act-json-view-wrap";
+          wrapFull.style.maxHeight = "200px";
+          fillActivityJsonTree(wrapFull, step);
+          det.appendChild(wrapFull);
+          let stepSerialized;
           try {
-            preFull.textContent = JSON.stringify(step, null, 2);
+            stepSerialized = JSON.stringify(step, null, 2);
           } catch (e) {
-            preFull.textContent = String(step);
+            stepSerialized = String(step);
           }
-          det.appendChild(preFull);
+          appendActivityJsonPlainFallback(det, stepSerialized);
           box.appendChild(det);
           body.appendChild(box);
         });
+      }
+
+      function buildReportExportMarkdown(data, localTimeLine) {
+        const L = [];
+        const llm = data.llm || {};
+        const line = (s) => L.push(String(s || ""));
+        const blank = () => L.push("");
+        const bullets = (title, items) => {
+          const arr = Array.isArray(items) ? items : [];
+          if (!arr.length) return;
+          L.push("## " + title);
+          arr.forEach((x) => {
+            const s = String(x || "").trim();
+            if (s) L.push("- " + s.replace(/\n/g, " "));
+          });
+          blank();
+        };
+
+        L.push("# TravelCare guidance report");
+        blank();
+        line("**Local time (this device):** " + (localTimeLine || "—"));
+        blank();
+        if (llm.abstain === true && llm.abstention_reason) {
+          line("> **Limited answer / abstention:** " + String(llm.abstention_reason));
+          blank();
+        }
+        L.push("## Trip context");
+        line("- **Where you are (trip):** " + (data.travel_location || data.locale || "—"));
+        line("- **Home (comparison):** " + (data.home_country || "—"));
+        line("- **Care level:** " + (data.care_level || "—"));
+        line("- **Emergency pattern:** " + (data.emergency ? "yes" : "no"));
+        if (data.severity_source === "llm_adjusted" && data.rule_triage) {
+          const rt = data.rule_triage;
+          line(
+            "- **Severity source:** model adjusted keyword triage (rule snapshot: care " +
+              (rt.care_level || "—") +
+              ", emergency " +
+              (rt.emergency ? "yes" : "no") +
+              ")"
+          );
+        } else if (data.severity_source) {
+          line("- **Severity source:** " + String(data.severity_source));
+        }
+        if (data.llm_severity_override_rejected && data.llm_severity_override_reject_reason) {
+          line("- **Severity override:** " + String(data.llm_severity_override_reject_reason));
+        }
+        if (!isNormalMode() && data.query_strategy) line("- **Query strategy:** " + data.query_strategy);
+        blank();
+        if (data.research_from_tools_error) {
+          line("**Research tools error:** " + data.research_from_tools_error);
+          blank();
+        }
+        if (data.research_from_tools_digest && String(data.research_from_tools_digest).trim()) {
+          L.push("## Research digest (tools)");
+          line(String(data.research_from_tools_digest).trim());
+          blank();
+        }
+        if (llm.summary_for_traveler) {
+          L.push("## Summary");
+          line(String(llm.summary_for_traveler).trim());
+          blank();
+        } else if (data.llm_skip_reason || data.llm_error) {
+          L.push("## Summary");
+          line(
+            data.llm_skip_reason === "missing_openai_api_key"
+              ? "No LLM summary (OpenAI key not configured)."
+              : data.llm_error
+                ? "LLM error: " + data.llm_error
+                : "No summary in this response."
+          );
+          blank();
+        }
+        bullets("Local healthcare vs your home system", llm.healthcare_system_contrast);
+        bullets("Rule checks", data.rule_rationale);
+        const srcCtx = llm.sources_context_for_traveler;
+        bullets("How sources apply to your trip", srcCtx);
+        const cites = data.citations || [];
+        if (cites.length) {
+          L.push("## Retrieved snippets");
+          cites.forEach((c) => {
+            const t = (c && (c.title || c.id)) || "Source";
+            line("- **" + String(t) + "**");
+            if (c && c.excerpt) line("  " + String(c.excerpt).trim().replace(/\n/g, " "));
+          });
+          blank();
+        }
+        bullets("What to do next", llm.what_to_do_next);
+        bullets("Clarifying questions", llm.questions_to_clarify);
+        const opts = Array.isArray(llm.nearby_care_options) ? llm.nearby_care_options : [];
+        if (opts.length) {
+          L.push("## Nearby care options");
+          opts.forEach((o) => {
+            if (!o || typeof o !== "object") return;
+            const bits = [o.name || "Facility"];
+            if (o.type) bits.push(String(o.type));
+            if (o.distance_m != null) bits.push(String(o.distance_m) + " m");
+            line("- **" + bits[0] + "**" + (bits.length > 1 ? " (" + bits.slice(1).join(", ") + ")" : ""));
+            if (o.address) line("  Address: " + String(o.address));
+            if (o.why_consider) line("  " + String(o.why_consider).trim().replace(/\n/g, " "));
+            if (o.maps_url && String(o.maps_url).startsWith("https://")) line("  Maps: " + o.maps_url);
+          });
+          blank();
+        }
+        const caveats = Array.isArray(llm.nearby_care_caveats) ? llm.nearby_care_caveats : [];
+        if (caveats.length) {
+          L.push("## Other nearby listings (caveats)");
+          caveats.forEach((c) => {
+            const s = String(c || "").trim();
+            if (s) L.push("- " + s.replace(/\n/g, " "));
+          });
+          blank();
+        }
+        const tplans = Array.isArray(llm.treatment_plan_options) ? llm.treatment_plan_options : [];
+        const costBlocks = Array.isArray(llm.cost_estimate_table) ? llm.cost_estimate_table : [];
+        if (tplans.length || costBlocks.length) {
+          L.push("## Treatment paths & indicative costs");
+          tplans.forEach((p) => {
+            if (!p || typeof p !== "object") return;
+            line("- **" + (p.title || p.id || "Plan") + "**");
+            if (p.description) line("  " + String(p.description).trim().replace(/\n/g, " "));
+          });
+          costBlocks.forEach((block) => {
+            if (!block || typeof block !== "object") return;
+            blank();
+            line(
+              "### " +
+                (block.plan_title || block.plan_id || "Plan") +
+                (block.currency ? " · " + block.currency : "")
+            );
+            const rows = block.rows || [];
+            if (rows.length) {
+              rows.forEach((r) => {
+                line(
+                  "- " +
+                    (r.item || "—") +
+                    " · low " +
+                    formatCostAmount(r.low_amount) +
+                    " · high " +
+                    formatCostAmount(r.high_amount) +
+                    (r.notes ? " · " + String(r.notes) : "")
+                );
+              });
+            }
+            if (block.total_low != null || block.total_high != null) {
+              line(
+                "- *Indicative total:* " +
+                  formatCostAmount(block.total_low) +
+                  " – " +
+                  formatCostAmount(block.total_high) +
+                  (block.currency ? " " + block.currency : "")
+              );
+            }
+          });
+          if (llm.cost_uncertainty_note) {
+            blank();
+            line("*Cost note:* " + String(llm.cost_uncertainty_note));
+          }
+          blank();
+        }
+        const phTips = llm.pharmacy_visit_tips || [];
+        const otcEx = llm.otc_medication_examples || [];
+        const medLinks = llm.medication_reference_links || [];
+        if (phTips.length || otcEx.length || medLinks.length) {
+          L.push("## Pharmacy / OTC orientation");
+          bullets("Visit tips", phTips);
+          bullets("OTC examples", otcEx);
+          if (medLinks.length) {
+            L.push("### Reference links");
+            medLinks.forEach((u) => {
+              const s = String(u || "").trim();
+              if (s) L.push("- " + s);
+            });
+            blank();
+          }
+        }
+        const disc = llm.disclaimer || data.disclaimer || "Educational use only — not a diagnosis.";
+        L.push("## Disclaimer");
+        line(disc);
+        blank();
+        line("—");
+        line("*Exported from Travel Care AI. Not medical advice.*");
+        return L.join("\n");
+      }
+
+      function stripMarkdownForPdf(md) {
+        let s = String(md || "");
+        s = s.replace(/\r\n/g, "\n");
+        s = s.replace(/\*\*([^*]+)\*\*/g, "$1");
+        s = s.replace(/\*([^*\n]+)\*/g, "$1");
+        s = s.replace(/^#{1,6}\s+/gm, "");
+        s = s.replace(/^>\s?/gm, "");
+        s = s.replace(/\n{3,}/g, "\n\n");
+        return s.trim();
+      }
+
+      function downloadReportAsPdfFromMarkdown(md, filenameStem) {
+        const globalJsPdf = window.jspdf;
+        if (!globalJsPdf || typeof globalJsPdf.jsPDF !== "function") {
+          showMessageModal(
+            "The PDF library did not load (often a network or blocker issue). Try again or check your connection.",
+            "Download PDF"
+          );
+          return;
+        }
+        const { jsPDF } = globalJsPdf;
+        const plain = stripMarkdownForPdf(md);
+        const doc = new jsPDF({ unit: "pt", format: "letter", compress: true });
+        const pageH = doc.internal.pageSize.getHeight();
+        const pageW = doc.internal.pageSize.getWidth();
+        const marginX = 48;
+        const marginY = 54;
+        const maxW = pageW - marginX * 2;
+        const lineH = 13;
+        const fontSize = 10;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(fontSize);
+        let y = marginY;
+        const paragraphs = plain.split(/\n\n+/);
+        paragraphs.forEach((para) => {
+          const block = para.trim();
+          if (!block) return;
+          const lines = doc.splitTextToSize(block, maxW);
+          lines.forEach((ln) => {
+            if (y + lineH > pageH - marginY) {
+              doc.addPage();
+              y = marginY;
+            }
+            doc.text(ln, marginX, y);
+            y += lineH;
+          });
+          y += lineH * 0.35;
+        });
+        doc.save((filenameStem || "travelcare-report") + ".pdf");
       }
 
       function renderAssistResponse(data) {
@@ -2474,11 +3212,23 @@
         tags.appendChild(
           el("span", emerg ? "tag tag-warn" : "tag tag-ok", emerg ? "Emergency pattern: yes" : "Emergency pattern: no")
         );
+        if (data.severity_source === "llm_adjusted") {
+          tags.appendChild(el("span", "tag tag-level", "Severity: model-adjusted"));
+        }
+        if (data.llm_severity_override_rejected) {
+          tags.appendChild(el("span", "tag tag-warn", "Severity override blocked"));
+        }
         if (!isNormalMode()) {
           const strat = data.query_strategy || "single_turn";
           tags.appendChild(el("span", "tag tag-level", "Strategy: " + strat));
         }
         ov.appendChild(tags);
+        const overviewNow = new Date();
+        lastReportLocalTimeLabel = new Intl.DateTimeFormat(undefined, {
+          dateStyle: "full",
+          timeStyle: "medium",
+        }).format(overviewNow);
+        ov.appendChild(el("p", "muted", "Local time (this device): " + lastReportLocalTimeLabel));
         ov.appendChild(el("p", "muted", "Where you are (trip): " + loc));
         ov.appendChild(
           el(
@@ -2653,33 +3403,48 @@
 
         const forJson = { ...data };
         delete forJson.llm_api_prompt;
+        lastAssistReportData = forJson;
         jsonEl.textContent = JSON.stringify(forJson, null, 2);
+        const dlBtn = document.getElementById("downloadReportBtn");
+        if (dlBtn) dlBtn.hidden = false;
       }
 
       function updateChatChromeForSession() {
         if (!chatInput || !chatSend || !chatHint) return;
         const lockNotice = document.getElementById("oneTurnSendLockNotice");
+        const oneTurnBanner = document.getElementById("oneTurnStrategyBanner");
         if (isDemoOneTurnByStrategy()) {
           const sent = !!sessionMessage.trim();
           chatInput.disabled = sent;
           chatSend.disabled = sent;
           if (sent) {
-            chatHint.textContent =
-              "Your message is in the thread — use Generate report for the full write-up.";
+            chatHint.textContent = "Your message is in the thread — use Generate report → for the full write-up.";
+            if (oneTurnBanner) {
+              oneTurnBanner.hidden = false;
+              oneTurnBanner.textContent =
+                "One-turn query strategy: only one traveler message is sent to the model in this demo. Send is turned off. Click Generate report → (right) to produce your full orientation write-up.";
+            }
             if (lockNotice) {
-              lockNotice.hidden = false;
-              lockNotice.textContent =
-                "Send stays off in this demo: the query strategy is one round, so only one traveler message is collected before Generate report.";
+              lockNotice.hidden = true;
+              lockNotice.textContent = "";
             }
           } else {
             chatHint.textContent =
-              "This demo is one round: review or edit the sample in the box, press Send once, then use Generate report.";
+              "This demo is one round: review or edit the sample in the box, press Send once, then use Generate report →.";
+            if (oneTurnBanner) {
+              oneTurnBanner.hidden = true;
+              oneTurnBanner.textContent = "";
+            }
             if (lockNotice) {
               lockNotice.hidden = true;
               lockNotice.textContent = "";
             }
           }
           return;
+        }
+        if (oneTurnBanner) {
+          oneTurnBanner.hidden = true;
+          oneTurnBanner.textContent = "";
         }
         if (lockNotice) {
           lockNotice.hidden = true;
@@ -2708,6 +3473,7 @@
       if (flowBackToChatBtn) {
         flowBackToChatBtn.addEventListener("click", () => {
           setFlowStep(1);
+          updateChatChromeForSession();
           if (apiOpenAiConfigured && !isDemoOneTurnByStrategy()) {
             try {
               chatInput.focus();
@@ -2731,7 +3497,56 @@
       function syncReportNavButtons() {
         if (flowViewReportBtn) flowViewReportBtn.hidden = out.hidden;
       }
+
+      let tcMessageModalResolve = null;
+      function closeMessageModal() {
+        const wrap = document.getElementById("tcMessageModal");
+        const ok = document.getElementById("tcMessageModalOk");
+        if (wrap) wrap.hidden = true;
+        if (ok) ok.onclick = null;
+        const bd = wrap ? wrap.querySelector(".tc-message-modal-backdrop") : null;
+        if (bd) bd.onclick = null;
+        if (tcMessageModalResolve) {
+          tcMessageModalResolve();
+          tcMessageModalResolve = null;
+        }
+      }
+      /** Replaces window.alert — returns a Promise that resolves when the user dismisses the modal. */
+      function showMessageModal(message, title) {
+        const wrap = document.getElementById("tcMessageModal");
+        const titleEl = document.getElementById("tcMessageModalTitle");
+        const bodyEl = document.getElementById("tcMessageModalBody");
+        const ok = document.getElementById("tcMessageModalOk");
+        const bd = wrap ? wrap.querySelector(".tc-message-modal-backdrop") : null;
+        if (!wrap || !bodyEl || !ok) {
+          console.warn(message);
+          return Promise.resolve();
+        }
+        const t = title != null && String(title).trim() !== "" ? String(title).trim() : "Notice";
+        if (titleEl) titleEl.textContent = t;
+        bodyEl.textContent = message != null ? String(message) : "";
+        wrap.hidden = false;
+        requestAnimationFrame(() => {
+          try {
+            ok.focus();
+          } catch (err) {
+            /* ignore */
+          }
+        });
+        ok.onclick = () => closeMessageModal();
+        if (bd) bd.onclick = () => closeMessageModal();
+        return new Promise((resolve) => {
+          tcMessageModalResolve = resolve;
+        });
+      }
+
       document.addEventListener("keydown", (e) => {
+        const msgModal = document.getElementById("tcMessageModal");
+        if (e.key === "Escape" && msgModal && !msgModal.hidden) {
+          e.preventDefault();
+          closeMessageModal();
+          return;
+        }
         if (e.key === "Escape" && tcFlowStep > 0) {
           e.preventDefault();
           closeSessionModalFn();
@@ -2767,7 +3582,10 @@
           if (!isNormalMode()) {
             const ex = document.getElementById("examplePrompt").value;
             if (!ex || !EXAMPLE_SCENARIOS[ex]) {
-              alert("In demo mode, choose a sample prompt from the dropdown first.");
+              await showMessageModal(
+                "Choose a sample prompt from the dropdown before continuing to chat.",
+                "Demo mode"
+              );
               return;
             }
           }
@@ -2782,20 +3600,20 @@
             abstainBanner.hidden = true;
             abstainBanner.textContent = "";
           }
+          const oneTurnBanner = document.getElementById("oneTurnStrategyBanner");
+          if (oneTurnBanner) {
+            oneTurnBanner.hidden = true;
+            oneTurnBanner.textContent = "";
+          }
 
           if (!isNormalMode()) {
             const ex = document.getElementById("examplePrompt").value;
             const x = EXAMPLE_SCENARIOS[ex];
             const msgEl = document.getElementById("msg");
-            if (isDemoOneTurnByStrategy()) {
-              sessionMessage = "";
-              if (msgEl) msgEl.value = "";
-              chatInput.value = (x && x.message) || "";
-            } else {
-              sessionMessage = (x && x.message) || "";
-              if (msgEl) msgEl.value = sessionMessage;
-              chatInput.value = "";
-            }
+            const sample = (x && x.message) || "";
+            sessionMessage = "";
+            if (msgEl) msgEl.value = "";
+            chatInput.value = sample;
           } else {
             sessionMessage = "";
             const msgEl = document.getElementById("msg");
@@ -2821,17 +3639,22 @@
         generateReportBtn.addEventListener("click", async () => {
           await refreshApiFlags();
           if (!sessionMessage.trim()) {
-            alert(
+            await showMessageModal(
               isNormalMode()
                 ? "Type your situation in chat and press Send first, then generate the report."
                 : isDemoOneTurnByStrategy()
                   ? "Press Send once in chat to submit the sample message, then generate the report."
-                  : "Send at least one chat message with your story before generating the report."
+                  : "Send at least one chat message with your story before generating the report.",
+              "Generate report"
             );
             return;
           }
           generateReportBtn.disabled = true;
+          let reportThinking = null;
           try {
+            reportThinking = appendThinkingChatBubble(
+              isNormalMode() ? "Preparing your full report" : "Generating report"
+            );
             const data = await postAssist();
             renderAssistResponse(data);
             out.hidden = false;
@@ -2858,8 +3681,9 @@
             }
           } catch (e) {
             jsonEl.textContent = String(e);
-            alert(String(e));
+            await showMessageModal(String(e), "Error");
           } finally {
+            removeThinkingChatBubble(reportThinking);
             generateReportBtn.disabled = false;
           }
         });
@@ -2876,10 +3700,12 @@
           const msgEl = document.getElementById("msg");
           if (msgEl) msgEl.value = text;
           chatInput.value = "";
-          updateChatChromeForSession();
-          alert(
-            "Send is now disabled.\n\nThis demo uses a one-turn query strategy (single-turn, single-turn + tools, or unsolvable-aware): only one traveler message is collected before you run Generate report."
+          /* Single-turn does not call the model here (that happens on Generate report); add a clear in-thread cue. */
+          appendChatBubble(
+            "assistant",
+            "Thanks — your message is recorded for this one-turn demo. The assistant reply for this round is produced when you run Generate report → (not as a separate chat turn). Send stays off until you start a new session."
           );
+          updateChatChromeForSession();
           return;
         }
 
@@ -2896,7 +3722,9 @@
         }
         chatSend.disabled = true;
         chatInput.disabled = true;
+        let chatThinking = null;
         try {
+          chatThinking = appendThinkingChatBubble("Thinking");
           const data = await postAssist();
           appendAssistantChatBubble(data);
           sessionChatHistory.push({ role: "assistant", content: assistantTurnPlainText(data) });
@@ -2904,6 +3732,7 @@
           appendChatBubble("assistant", "Error: " + String(e));
           sessionChatHistory.push({ role: "assistant", content: "Error: " + String(e) });
         } finally {
+          removeThinkingChatBubble(chatThinking);
           chatSend.disabled = false;
           chatInput.disabled = false;
           updateChatChromeForSession();
@@ -2918,21 +3747,41 @@
         }
       });
 
+      const downloadReportBtn = document.getElementById("downloadReportBtn");
+      if (downloadReportBtn) {
+        downloadReportBtn.addEventListener("click", () => {
+          if (!lastAssistReportData) return;
+          const md = buildReportExportMarkdown(lastAssistReportData, lastReportLocalTimeLabel);
+          const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "travelcare-report-" + new Date().toISOString().slice(0, 10) + ".md";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        });
+      }
+
       const refineTreatmentCostBtn = document.getElementById("refineTreatmentCost");
       if (refineTreatmentCostBtn) {
         refineTreatmentCostBtn.addEventListener("click", async () => {
           if (!sessionMessage.trim()) {
-            alert("Generate a report first (or send chat messages in normal mode).");
+            await showMessageModal(
+              "Generate a report first (or send chat messages in normal mode).",
+              "Cost refinement"
+            );
             return;
           }
           const picked = document.querySelector('input[name="treatmentPlanPick"]:checked');
           if (!picked || !picked.value) {
-            alert("Select a treatment plan.");
+            await showMessageModal("Select a treatment plan.", "Cost refinement");
             return;
           }
           await refreshApiFlags();
           if (!apiOpenAiConfigured) {
-            alert("OpenAI must be configured for cost refinement.");
+            await showMessageModal("OpenAI must be configured for cost refinement.", "Cost refinement");
             return;
           }
           refineTreatmentCostBtn.disabled = true;
@@ -2943,7 +3792,7 @@
             syncReportNavButtons();
             setFlowStep(2);
           } catch (e) {
-            alert(String(e));
+            await showMessageModal(String(e), "Error");
           } finally {
             refineTreatmentCostBtn.disabled = false;
           }

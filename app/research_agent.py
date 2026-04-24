@@ -224,6 +224,71 @@ def _trace_tool_arguments(name: str, arguments: dict[str, Any]) -> dict[str, Any
     return out
 
 
+def _simplify_tool_calls_for_activity_log(tcalls: Any) -> list[dict[str, Any]]:
+    if not isinstance(tcalls, list):
+        return []
+    simplified: list[dict[str, Any]] = []
+    for x in tcalls:
+        if not isinstance(x, dict):
+            continue
+        fn = x.get("function") or {}
+        args_raw = fn.get("arguments") or "{}"
+        args_s = str(args_raw)
+        if len(args_s) > 4000:
+            args_s = args_s[:4000] + "…"
+        simplified.append(
+            {
+                "id": str(x.get("id") or "")[:80],
+                "name": str(fn.get("name") or ""),
+                "arguments": args_s,
+            }
+        )
+    return simplified
+
+
+def _openai_messages_for_activity_log(
+    messages: list[dict[str, Any]], *, max_content: int = 24_000
+) -> list[dict[str, Any]]:
+    """JSON-safe copy of chat messages for UI (truncated)."""
+    out: list[dict[str, Any]] = []
+    for m in messages:
+        if not isinstance(m, dict):
+            continue
+        role = str(m.get("role") or "")
+        entry: dict[str, Any] = {"role": role}
+        content = m.get("content")
+        if content is None:
+            entry["content"] = None
+        elif isinstance(content, str):
+            entry["content"] = (
+                content
+                if len(content) <= max_content
+                else content[:max_content] + "\n… [truncated]"
+            )
+        else:
+            entry["content"] = str(content)[:max_content]
+        if role == "assistant" and m.get("tool_calls"):
+            entry["tool_calls"] = _simplify_tool_calls_for_activity_log(m.get("tool_calls"))
+        if role == "tool" and m.get("tool_call_id"):
+            entry["tool_call_id"] = str(m.get("tool_call_id"))[:80]
+        out.append(entry)
+    return out
+
+
+def _openai_assistant_response_for_activity_log(
+    msg: dict[str, Any], *, max_content: int = 48_000
+) -> dict[str, Any]:
+    out: dict[str, Any] = {"role": str(msg.get("role") or "assistant")}
+    content = msg.get("content")
+    if content is not None and content != "":
+        c = str(content)
+        out["content"] = c if len(c) <= max_content else c[:max_content] + "\n… [truncated]"
+    tc = msg.get("tool_calls") or []
+    if isinstance(tc, list) and tc:
+        out["tool_calls"] = _simplify_tool_calls_for_activity_log(tc)
+    return out
+
+
 def _summarize_tool_result_for_trace(name: str, result: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(result, dict):
         return {"note": "non-object tool result"}
@@ -682,11 +747,9 @@ Rules:
                 raise
             data = r.json()
             msg = data["choices"][0]["message"]
-            messages.append(msg)
-
             tcalls = msg.get("tool_calls") or []
+            batch: list[dict[str, Any]] = []
             if tcalls:
-                batch: list[dict[str, Any]] = []
                 for tc in tcalls:
                     fn = tc.get("function") or {}
                     n = str(fn.get("name") or "").strip()
@@ -703,15 +766,19 @@ Rules:
                             "arguments": _trace_tool_arguments(n, args),
                         }
                     )
-                activity_trace.append(
-                    {
-                        "phase": "research",
-                        "round": rounds,
-                        "kind": "model_requests_tools",
-                        "model": model_name,
-                        "calls": batch,
-                    }
-                )
+            ex_entry: dict[str, Any] = {
+                "phase": "research",
+                "round": rounds,
+                "kind": "llm_exchange",
+                "model": model_name,
+                "request_messages": _openai_messages_for_activity_log(messages),
+                "response": _openai_assistant_response_for_activity_log(msg),
+            }
+            if batch:
+                ex_entry["calls"] = batch
+            activity_trace.append(ex_entry)
+
+            messages.append(msg)
 
             if not tcalls:
                 raw_content = (msg.get("content") or "").strip()
@@ -739,6 +806,7 @@ Rules:
                 structured.setdefault("research_notes", [])
 
                 structured["digest_text"] = _build_digest_text(structured)
+                preview_cap = 80_000
                 activity_trace.append(
                     {
                         "phase": "research",
@@ -750,6 +818,11 @@ Rules:
                             "A digest was built for the main traveler-facing assistant."
                         ),
                         "json_response_chars": len(raw_content),
+                        "assistant_raw_json": (
+                            raw_content
+                            if len(raw_content) <= preview_cap
+                            else raw_content[:preview_cap] + "\n… [truncated]"
+                        ),
                     }
                 )
                 logger.info(

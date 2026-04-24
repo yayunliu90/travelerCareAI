@@ -127,6 +127,7 @@ def rule_triage(user_text: str) -> RuleTriageResult:
         emergency=False,
         matched_rules=["default_non_emergency"],
         rationale=[
-            "No hard red-flag pattern matched from the free-text snippet — consider a clinic or primary-care visit if symptoms persist, worsen, or worry you.",
+            "No urgent keyword pattern matched this description (the app uses a short safety screen, not a diagnosis). "
+            "If symptoms persist, worsen, or worry you, consider an in-person clinic or primary-care visit.",
         ],
     )
