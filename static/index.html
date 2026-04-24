@@ -1452,25 +1452,6 @@
           <ul id="panelContrastBody"></ul>
         </div>
 
-        <div class="panel" id="panelRules">
-          <h3>Rule checks</h3>
-          <ul id="panelRulesBody"></ul>
-        </div>
-
-        <div class="panel" id="panelCitations">
-          <h3>Retrieved snippets</h3>
-          <p id="panelCitationsIntro" class="muted"></p>
-          <div id="panelSourcesContextWrap">
-            <p class="muted" style="margin-top: 0.15rem; font-weight: 600">How this applies to your trip</p>
-            <ul id="panelSourcesContextBody"></ul>
-            <p id="panelSourcesContextFallback" class="muted" hidden></p>
-          </div>
-          <details id="panelCitationsRaw" class="citations-raw">
-            <summary>Raw corpus excerpts (server retrieval)</summary>
-            <ul id="panelCitationsBody"></ul>
-          </details>
-        </div>
-
         <div class="panel span-2" id="panelNext">
           <h3>What to do next</h3>
           <ol id="panelNextBody"></ol>
@@ -1503,11 +1484,6 @@
           <div id="panelOtcExamples"></div>
           <div id="panelMedLinks"></div>
           <div id="panelMedImages" class="pharmacy-images"></div>
-        </div>
-
-        <div class="panel span-2" id="panelQuestions">
-          <h3>Clarifying questions</h3>
-          <ul id="panelQuestionsBody"></ul>
         </div>
 
         <div class="panel span-2" id="panelDisclaimer">
@@ -2063,6 +2039,90 @@
         if (!wrap.children.length) return;
         overviewHost.appendChild(el("h4", "research-digest-title", "Places / web research"));
         overviewHost.appendChild(wrap);
+      }
+
+      /** Rule triage + RAG corpus (and model “how sources apply”) in Overview, after Places/web when present. */
+      function appendOverviewCorpusAndRules(overviewHost, data) {
+        const block = document.createElement("div");
+        block.className = "research-digest";
+        block.style.marginTop = "0.85rem";
+
+        block.appendChild(el("h4", "research-digest-title", "Rule checks"));
+        const ulRules = document.createElement("ul");
+        ulRules.className = "research-list";
+        (data.rule_rationale || []).forEach((line) => {
+          const s = String(line || "").trim();
+          if (s) ulRules.appendChild(el("li", "", s));
+        });
+        if (!ulRules.children.length) {
+          ulRules.appendChild(el("li", "muted", "None"));
+        }
+        block.appendChild(ulRules);
+
+        block.appendChild(el("h4", "research-digest-title", "Retrieved snippets"));
+        const intro = document.createElement("p");
+        intro.className = "muted";
+        intro.style.marginTop = "0.25rem";
+        intro.textContent = isNormalMode()
+          ? "Trip-specific notes from the model (when available); raw lines are from server keyword retrieval."
+          : "Trip-specific framing when the model returns it; raw excerpts are a small keyword-matched corpus.";
+        block.appendChild(intro);
+
+        const srcCtx = (data.llm && data.llm.sources_context_for_traveler) || [];
+        const wrapCtx = document.createElement("div");
+        wrapCtx.style.marginTop = "0.35rem";
+        if (srcCtx.length) {
+          const cap = el("p", "muted", "How this applies to your trip");
+          cap.style.fontWeight = "600";
+          cap.style.margin = "0.15rem 0 0";
+          wrapCtx.appendChild(cap);
+          const ulSc = document.createElement("ul");
+          ulSc.className = "research-list";
+          srcCtx.forEach((line) => {
+            const s = String(line || "").trim();
+            if (s) ulSc.appendChild(el("li", "", s));
+          });
+          wrapCtx.appendChild(ulSc);
+        } else {
+          wrapCtx.appendChild(
+            el(
+              "p",
+              "muted",
+              isNormalMode()
+                ? data.llm_skip_reason === "missing_openai_api_key"
+                  ? "Trip-specific notes are not available for this run."
+                  : data.llm_error
+                    ? "Trip-specific notes were not generated for this run."
+                    : "No trip-specific notes for this turn."
+                : data.llm_skip_reason === "missing_openai_api_key"
+                  ? "Trip-specific notes on these excerpts need OpenAI on the server. Expand raw excerpts below to read them."
+                  : data.llm_error
+                    ? "Model notes were not generated (" + data.llm_error + "). Expand below for raw retrieval excerpts."
+                    : "No model notes for this turn. Expand below for raw retrieval excerpts."
+            )
+          );
+        }
+        block.appendChild(wrapCtx);
+
+        const rawDetails = document.createElement("details");
+        rawDetails.className = "citations-raw";
+        rawDetails.open = srcCtx.length === 0;
+        rawDetails.appendChild(el("summary", "", "Raw corpus excerpts (server retrieval)"));
+        const ulC = document.createElement("ul");
+        ulC.className = "research-list";
+        (data.citations || []).forEach((c) => {
+          const li = document.createElement("li");
+          li.appendChild(el("strong", "", (c && (c.title || c.id)) || "Source"));
+          if (c && c.excerpt) li.appendChild(el("div", "muted", c.excerpt));
+          ulC.appendChild(li);
+        });
+        if (!ulC.children.length) {
+          ulC.appendChild(el("li", "muted", "None"));
+        }
+        rawDetails.appendChild(ulC);
+        block.appendChild(rawDetails);
+
+        overviewHost.appendChild(block);
       }
 
       function appendDigestPlain(wrap, digestText) {
@@ -2982,6 +3042,18 @@
           line(String(data.research_from_tools_digest).trim());
           blank();
         }
+        bullets("Rule checks", data.rule_rationale);
+        bullets("How sources apply to your trip", llm.sources_context_for_traveler);
+        const cites = data.citations || [];
+        if (cites.length) {
+          L.push("## Retrieved snippets");
+          cites.forEach((c) => {
+            const t = (c && (c.title || c.id)) || "Source";
+            line("- **" + String(t) + "**");
+            if (c && c.excerpt) line("  " + String(c.excerpt).trim().replace(/\n/g, " "));
+          });
+          blank();
+        }
         if (llm.summary_for_traveler) {
           L.push("## Summary");
           line(String(llm.summary_for_traveler).trim());
@@ -2998,21 +3070,7 @@
           blank();
         }
         bullets("Local healthcare vs your home system", llm.healthcare_system_contrast);
-        bullets("Rule checks", data.rule_rationale);
-        const srcCtx = llm.sources_context_for_traveler;
-        bullets("How sources apply to your trip", srcCtx);
-        const cites = data.citations || [];
-        if (cites.length) {
-          L.push("## Retrieved snippets");
-          cites.forEach((c) => {
-            const t = (c && (c.title || c.id)) || "Source";
-            line("- **" + String(t) + "**");
-            if (c && c.excerpt) line("  " + String(c.excerpt).trim().replace(/\n/g, " "));
-          });
-          blank();
-        }
         bullets("What to do next", llm.what_to_do_next);
-        bullets("Clarifying questions", llm.questions_to_clarify);
         const opts = Array.isArray(llm.nearby_care_options) ? llm.nearby_care_options : [];
         if (opts.length) {
           L.push("## Nearby care options");
@@ -3121,17 +3179,20 @@
       }
 
       function downloadReportAsPdfFromMarkdown(md, filenameStem) {
-        const globalJsPdf = window.jspdf;
-        if (!globalJsPdf || typeof globalJsPdf.jsPDF !== "function") {
+        const g = window;
+        let JsPdfCtor = g.jspdf && g.jspdf.jsPDF;
+        if (typeof JsPdfCtor !== "function" && typeof g.jsPDF === "function") {
+          JsPdfCtor = g.jsPDF;
+        }
+        if (typeof JsPdfCtor !== "function") {
           showMessageModal(
             "The PDF library did not load (often a network or blocker issue). Try again or check your connection.",
             "Download PDF"
           );
           return;
         }
-        const { jsPDF } = globalJsPdf;
         const plain = stripMarkdownForPdf(md);
-        const doc = new jsPDF({ unit: "pt", format: "letter", compress: true });
+        const doc = new JsPdfCtor({ unit: "pt", format: "letter", compress: true });
         const pageH = doc.internal.pageSize.getHeight();
         const pageW = doc.internal.pageSize.getWidth();
         const marginX = 48;
@@ -3174,33 +3235,15 @@
         const ov = document.getElementById("panelOverviewBody");
         const sm = document.getElementById("panelSummaryBody");
         const cx = document.getElementById("panelContrastBody");
-        const rb = document.getElementById("panelRulesBody");
-        const cb = document.getElementById("panelCitationsBody");
-        const citIntro = document.getElementById("panelCitationsIntro");
-        const scBody = document.getElementById("panelSourcesContextBody");
-        const scFb = document.getElementById("panelSourcesContextFallback");
-        const rawDetails = document.getElementById("panelCitationsRaw");
         const nb = document.getElementById("panelNextBody");
         const nearbyBody = document.getElementById("panelNearbyCareBody");
-        const qb = document.getElementById("panelQuestionsBody");
         const db = document.getElementById("panelDisclaimerBody");
 
         clearNode(ov);
         clearNode(sm);
         clearNode(cx);
-        clearNode(rb);
-        clearNode(cb);
-        if (scBody) {
-          clearNode(scBody);
-          scBody.hidden = false;
-        }
-        if (scFb) {
-          scFb.textContent = "";
-          scFb.hidden = true;
-        }
         clearNode(nb);
         if (nearbyBody) clearNode(nearbyBody);
-        clearNode(qb);
         db.textContent = "";
 
         const loc = data.travel_location || data.locale || "Unspecified";
@@ -3260,6 +3303,7 @@
         if (data.research_from_tools_digest || data.research_from_tools_structured) {
           appendPlacesWebResearch(ov, data);
         }
+        appendOverviewCorpusAndRules(ov, data);
 
         if (data.llm && data.llm.summary_for_traveler) {
           sm.appendChild(el("p", "", data.llm.summary_for_traveler));
@@ -3294,66 +3338,11 @@
           );
         }
 
-        (data.rule_rationale || []).forEach((line) => {
-          rb.appendChild(el("li", "", line));
-        });
-        if (!data.rule_rationale || !data.rule_rationale.length) {
-          rb.appendChild(el("li", "muted", "None"));
-        }
-
-        if (citIntro) {
-          citIntro.textContent = isNormalMode()
-            ? "When available, trip-specific notes appear above the source list."
-            : "Trip-specific framing is shown first when the model returns it. Raw excerpts are a small keyword-matched corpus — expand below.";
-        }
-        (data.citations || []).forEach((c) => {
-          const li = document.createElement("li");
-          const t = el("strong", "", c.title || c.id || "Source");
-          li.appendChild(t);
-          if (c.excerpt) li.appendChild(el("div", "muted", c.excerpt));
-          cb.appendChild(li);
-        });
-        if (!data.citations || !data.citations.length) {
-          cb.appendChild(el("li", "muted", "None"));
-        }
-        const srcCtx = (data.llm && data.llm.sources_context_for_traveler) || [];
-        if (scBody && scFb) {
-          if (srcCtx.length) {
-            scFb.hidden = true;
-            scBody.hidden = false;
-            srcCtx.forEach((line) => scBody.appendChild(el("li", "", line)));
-          } else {
-            scBody.hidden = true;
-            scFb.hidden = false;
-            scFb.textContent = isNormalMode()
-              ? data.llm_skip_reason === "missing_openai_api_key"
-                ? "Trip-specific notes are not available for this run."
-                : data.llm_error
-                  ? "Trip-specific notes were not generated for this run."
-                  : "No trip-specific notes for this turn."
-              : data.llm_skip_reason === "missing_openai_api_key"
-                ? "Trip-specific notes on these excerpts need OpenAI on the server. Raw excerpts are in the section below — expand to read them."
-                : data.llm_error
-                  ? "Model notes were not generated (" + data.llm_error + "). Expand below for raw retrieval excerpts."
-                  : "No model notes for this turn. Expand below for raw retrieval excerpts.";
-          }
-        }
-        if (rawDetails) {
-          rawDetails.open = srcCtx.length === 0;
-        }
-
         const nextItems = (data.llm && data.llm.what_to_do_next) || [];
         if (nextItems.length) {
           nextItems.forEach((s) => nb.appendChild(el("li", "", s)));
         } else {
-          nb.appendChild(el("li", "muted", "See rule checks and summary."));
-        }
-
-        const qs = (data.llm && data.llm.questions_to_clarify) || [];
-        if (qs.length) {
-          qs.forEach((q) => qb.appendChild(el("li", "", q)));
-        } else {
-          qb.appendChild(el("li", "muted", "None suggested — you can still ask in chat."));
+          nb.appendChild(el("li", "muted", "See overview and summary."));
         }
 
         const disc =
@@ -3752,15 +3741,8 @@
         downloadReportBtn.addEventListener("click", () => {
           if (!lastAssistReportData) return;
           const md = buildReportExportMarkdown(lastAssistReportData, lastReportLocalTimeLabel);
-          const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "travelcare-report-" + new Date().toISOString().slice(0, 10) + ".md";
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(url);
+          const stem = "travelcare-report-" + new Date().toISOString().slice(0, 10);
+          downloadReportAsPdfFromMarkdown(md, stem);
         });
       }
 

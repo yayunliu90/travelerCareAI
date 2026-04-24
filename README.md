@@ -18,6 +18,8 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
 
+**Download report** saves a **PDF** (generated in the browser via [jsPDF](https://github.com/parallax/jsPDF) from the CDN; allow network access to `cdnjs.cloudflare.com` if you use a strict blocker).
+
 ## Environment
 
 | Variable | Purpose |
@@ -38,96 +40,95 @@ High-level flow for a single `POST /api/assist` call (see `app/main.py`, `app/tr
 
 ```mermaid
 flowchart TB
-  subgraph client["Client (browser)"]
-    UI[Session / chat + trip context]
-    UI -->|POST /api/assist| API
+  subgraph client["Client browser"]
+    UI[Session and trip context]
+    UI -->|POST api assist| API
   end
 
-  subgraph server["FastAPI: assist()"]
-    API[Receive message, chat_history, strategy, location, research_tools flag, map coords]
+  subgraph server["FastAPI assist"]
+    API[Receive JSON body]
 
-    API --> COMBINE[Build combined text for signals]
-    COMBINE --> TRIAGE["rule_triage(combined)\n(regex / keyword layers)"]
-    TRIAGE --> RULES["Rules output:\ncare_level, emergency,\nmatched_rules, rationale"]
+    API --> COMBINE[Combine message and chat for signals]
+    COMBINE --> TRIAGE[rule_triage keyword and regex]
+    TRIAGE --> RULES[Rules care_level emergency rationale]
 
     COMBINE --> RAGQ[Build RAG query]
-    RAGQ --> RAGBRANCH{query_strategy == single_turn_tools\nand OpenAI key?}
-    RAGBRANCH -->|yes| PLAN["LLM: plan_retrieval_subqueries\n(extra English keywords)"]
-    PLAN --> RAGM["rag.retrieve_merged(...)"]
-    RAGBRANCH -->|no| RAG1["rag.retrieve(rag_query)"]
-    RAGM --> CITES["citations from chunks"]
+    RAGQ --> RAGBRANCH{merged retrieval mode}
+    RAGBRANCH -->|single_turn_tools| PLAN[LLM plans corpus queries]
+    PLAN --> RAGM[rag retrieve merged]
+    RAGBRANCH -->|default| RAG1[rag retrieve]
+    RAGM --> CITES[Citations from chunks]
     RAG1 --> CITES
 
-    API --> GEO{Maps key + location,\nmissing lat/lng?}
-    GEO -->|yes| GEOCODE[Geocode address]
-    GEO -->|no| MAPOK[Use client or prior coords]
+    API --> GEO{Need geocode}
+    GEO -->|yes| GEOCODE[Geocode trip text]
+    GEO -->|no| MAPOK[Use client coordinates]
     GEOCODE --> MAPOK
 
-    MAPOK --> LOCAL{Maps + coords?}
-    LOCAL -->|yes| DESTCTX[Destination local time context]
-    LOCAL -->|no| NORESEARCHCTX[Skip local context]
+    MAPOK --> LOCAL{Local time lookup}
+    LOCAL -->|yes| DESTCTX[Destination civil time]
+    LOCAL -->|no| SKIPCTX[Skip local context]
     DESTCTX --> RESQ
-    NORESEARCHCTX --> RESQ
+    SKIPCTX --> RESQ
 
-    subgraph research["Optional: research tool loop"]
-      RESQ{run_research?\nOpenAI + keys + not disabled}
-      RESQ -->|yes| RLOOP["research_agent:\nOpenAI chat + tools\n(Places, web_search, ...)"]
-      RLOOP --> RDIG["Structured research +\ndigest text"]
-      RESQ -->|no| NORES[No research payload]
+    subgraph research["Optional research loop"]
+      RESQ{Research enabled}
+      RESQ -->|yes| RLOOP[OpenAI tool loop Places web]
+      RLOOP --> RDIG[Digest and structured JSON]
+      RESQ -->|no| NORES[No research fields]
     end
 
     RDIG --> BASE
     NORES --> BASE
 
-    subgraph basebuild["Assemble base JSON"]
-      BASE["base: citations, disclaimer,\nmap coords, research fields,\nmatched_rules, rule_rationale,\nseverity_source=rules,\nrule_triage snapshot"]
+    subgraph basebuild["Assemble response"]
+      BASE[Base dict citations rules triage snapshot]
     end
 
     RULES --> BASE
 
-    subgraph llm_main["Optional: main traveler LLM"]
-      KEY{OPENAI_API_KEY?}
+    subgraph llm_main["Optional traveler LLM"]
+      KEY{OpenAI key set}
       BASE --> KEY
-      KEY -->|no| SKIP["llm = null\nllm_skip_reason"]
-      KEY -->|yes| AUG["llm.augment_with_openai(...)\n(server_decision + citations +\ndigest/structured + schema)"]
-      AUG --> PARSE["Parse JSON →\n_normalize_traveler_llm_json"]
-      PARSE --> LLMOUT["base.llm = traveler JSON\n(incl. optional severity_assessment)"]
+      KEY -->|no| SKIP[No llm block]
+      KEY -->|yes| AUG[augment_with_openai]
+      AUG --> PARSE[Normalize traveler JSON]
+      PARSE --> LLMOUT[llm object optional severity_assessment]
     end
 
     subgraph severity["Severity merge"]
-      MERGE["merge_effective_severity(rules, llm_out)"]
+      MERGE[merge_effective_severity]
       LLMOUT --> MERGE
-      MERGE --> EFF["Top-level care_level,\nemergency = effective"]
+      MERGE --> EFF[Effective care_level and emergency]
       MERGE --> SRC{severity_source}
-      SRC -->|rules| SRULES["Keyword triage only"]
-      SRC -->|llm_adjusted| SLLM["Model disagreed\n(valid payload)"]
-      MERGE --> REJ{Override rejected?\n(emergency downgrade blocked)}
-      REJ -->|yes| REJFL["llm_severity_override_rejected +\nreason"]
+      SRC -->|rules| SRULES[From keyword triage]
+      SRC -->|llm_adjusted| SLLM[From model payload]
+      MERGE --> REJFL[May set override_rejected]
     end
 
     SKIP --> RESP
     EFF --> RESP
     REJFL --> RESP
 
-    RESP[HTTP JSON response]
+    RESP[JSON response]
   end
 
-  RESP --> UI2[UI: report, tags, chat bubble,\nexport markdown]
+  RESP --> UI2[Report UI and PDF download]
 ```
 
 ### Severity merge (detail)
 
 ```mermaid
 flowchart LR
-  T[rule_triage on combined text] --> R[rules: care_level, emergency]
-  L[LLM traveler JSON] --> SA{severity_assessment\nagrees == false\nand valid fields?}
-  SA -->|no| E1[effective = rules]
-  SA -->|yes| G{rules already\nemergency?}
-  G -->|yes + model downgrades| E2[effective = rules\n+ override_rejected]
-  G -->|no or model escalates| E3[effective = suggested\nseverity_source = llm_adjusted]
+  T[rule_triage] --> R[Rules snapshot]
+  L[LLM JSON] --> SA{Valid disagreement}
+  SA -->|no| E1[Effective equals rules]
+  SA -->|yes| G{Server emergency flag}
+  G -->|blocked downgrade| E2[Keep rules reject override]
+  G -->|allowed| E3[Use suggested severity]
   R --> MERGE[merge_effective_severity]
   SA --> MERGE
-  MERGE --> OUT[Response: care_level,\nemergency, rule_triage,\nseverity_source]
+  MERGE --> OUT[Response fields]
 ```
 
 ## Emergencies while traveling
