@@ -766,39 +766,32 @@
         transform: scale(1.35);
         box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.35);
       }
-      /* One “pane” width = viewport; margin % is of this box (not the 300%-wide track) */
+      /* Three slides in a row; each is exactly one viewport width — scrollLeft picks the active pane (no transform). */
       .tc-flow-viewport {
         position: relative;
         flex: 1 1 auto;
         min-height: 0;
         width: 100%;
-        overflow: hidden;
-        box-sizing: border-box;
-      }
-      .tc-flow-track {
         display: flex;
+        flex-direction: row;
         flex-wrap: nowrap;
         align-items: stretch;
-        width: 300%;
-        height: 100%;
-        min-height: 0;
-        margin-left: 0;
-        transition: margin-left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-        will-change: margin-left;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: auto;
+        box-sizing: border-box;
+        scrollbar-width: none;
       }
-      .tc-flow-track.tc-flow-step-0 {
-        margin-left: 0;
-      }
-      .tc-flow-track.tc-flow-step-1 {
-        margin-left: -100%;
-      }
-      .tc-flow-track.tc-flow-step-2 {
-        margin-left: -200%;
+      .tc-flow-viewport::-webkit-scrollbar {
+        display: none;
       }
       .tc-flow-slide {
-        flex: 0 0 calc(100% / 3);
-        width: calc(100% / 3);
+        flex: 0 0 100%;
+        width: 100%;
         min-width: 0;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
         box-sizing: border-box;
         padding: 0.75rem 0.9rem 1rem;
         display: flex;
@@ -832,25 +825,26 @@
         }
       }
       #tcFlowSlideSession .session-modal-panel {
-        flex: 1;
+        flex: 1 1 auto;
         min-height: 0;
+        height: 100%;
         width: 100%;
         max-width: none;
         max-height: none;
       }
       #tcFlowSlideSession .session-modal-body {
         min-height: 0;
-        flex: 1;
+        flex: 1 1 auto;
         overflow: auto;
       }
       #tcFlowSlideSession .session-modal-chat {
-        flex: 1;
-        min-height: 200px;
+        flex: 1 1 auto;
+        min-height: 0;
         overflow: hidden;
       }
       #tcFlowSlideSession .session-modal-chat .chat-messages {
-        flex: 1;
-        min-height: 140px;
+        flex: 1 1 auto;
+        min-height: 120px;
         max-height: none;
         overflow-y: auto;
       }
@@ -908,6 +902,9 @@
         .session-modal-body {
           grid-template-columns: 1fr minmax(140px, 200px);
           align-items: start;
+        }
+        #tcFlowSlideSession .session-modal-body {
+          align-items: stretch;
         }
       }
       .session-modal-chat {
@@ -1044,8 +1041,7 @@
           <span class="tc-flow-dot tc-flow-dot-2" title="Step 3"></span>
         </div>
       </div>
-      <div class="tc-flow-viewport">
-      <div id="tcFlowTrack" class="tc-flow-track tc-flow-step-0">
+      <div id="tcFlowViewport" class="tc-flow-viewport">
         <div class="tc-flow-slide" id="tcFlowSlideInfo">
           <div class="card tc-flow-card-inner" id="landingCard">
       <h2 style="margin-top: 0; font-size: 1.05rem">Traveler information</h2>
@@ -1306,7 +1302,6 @@
           </div>
         </div>
       </div>
-      </div>
     </div>
 
     <script>
@@ -1324,7 +1319,7 @@
       const jsonEl = document.getElementById("json");
       const startSessionBtn = document.getElementById("startSessionBtn");
       const sessionModal = document.getElementById("sessionModal");
-      const tcFlowTrack = document.getElementById("tcFlowTrack");
+      const tcFlowViewport = document.getElementById("tcFlowViewport");
       const flowBackToChatBtn = document.getElementById("flowBackToChatBtn");
       const flowViewReportBtn = document.getElementById("flowViewReportBtn");
       const closeSessionModalBtn = document.getElementById("closeSessionModal");
@@ -1335,9 +1330,15 @@
 
       let tcFlowStep = 0;
 
+      function syncTcFlowPanelScroll() {
+        if (!tcFlowViewport) return;
+        const w = tcFlowViewport.clientWidth;
+        if (w <= 0) return;
+        tcFlowViewport.scrollLeft = Math.round(tcFlowStep * w);
+      }
+
       function setFlowStep(step) {
         tcFlowStep = Math.max(0, Math.min(2, step | 0));
-        if (tcFlowTrack) tcFlowTrack.className = "tc-flow-track tc-flow-step-" + tcFlowStep;
         document.querySelectorAll(".tc-flow-dot").forEach((d, i) => d.classList.toggle("active", i === tcFlowStep));
         document.querySelectorAll("[data-flow-label]").forEach((el) => {
           const n = Number(el.getAttribute("data-flow-label"));
@@ -1353,6 +1354,20 @@
           el.setAttribute("aria-hidden", i === tcFlowStep ? "false" : "true");
           if ("inert" in el) el.inert = i !== tcFlowStep;
         });
+        syncTcFlowPanelScroll();
+        requestAnimationFrame(() => {
+          syncTcFlowPanelScroll();
+        });
+      }
+
+      if (tcFlowViewport && typeof ResizeObserver !== "undefined") {
+        new ResizeObserver(() => syncTcFlowPanelScroll()).observe(tcFlowViewport);
+      } else if (typeof window !== "undefined") {
+        window.addEventListener("resize", () => syncTcFlowPanelScroll(), { passive: true });
+      }
+      window.addEventListener("load", () => syncTcFlowPanelScroll());
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => syncTcFlowPanelScroll());
       }
 
       function syncStrategyHint() {
@@ -1664,6 +1679,7 @@
           homeEl.value = cfg.defaultHomeCountry;
         }
         renderApiIndicators(cfg);
+        updateChatChromeForSession();
         return cfg;
       }
 
@@ -2676,10 +2692,11 @@
             ? "Describe what is happening and press Send. When you are ready, click Generate report for the full write-up."
             : "Send follow-ups to refine the story, then click Generate report.";
         } else {
-          chatInput.disabled = true;
+          chatInput.disabled = false;
           chatSend.disabled = true;
-          chatHint.textContent =
-            "Configure OPENAI_API_KEY on the server for chat and for the structured report.";
+          chatHint.textContent = isNormalMode()
+            ? "OpenAI is not configured on the server — type a draft below if you like; add OPENAI_API_KEY to enable Send and reports."
+            : "OpenAI is not configured — you can edit the box below; add OPENAI_API_KEY on the server to enable Send and Generate report.";
         }
       }
 
@@ -2789,19 +2806,14 @@
           appendChatBubble("assistant", SESSION_GREETING);
           setFlowStep(1);
           updateChatChromeForSession();
-          if (isDemoOneTurnByStrategy()) {
+          /* Focus after layout: inert was cleared on the chat slide this frame */
+          requestAnimationFrame(() => {
             try {
-              chatInput.focus();
+              if (chatInput && !chatInput.disabled) chatInput.focus();
             } catch (err) {
               /* ignore */
             }
-          } else if (apiOpenAiConfigured) {
-            try {
-              chatInput.focus();
-            } catch (err) {
-              /* ignore */
-            }
-          }
+          });
         });
       }
 
