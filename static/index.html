@@ -471,6 +471,21 @@
       .chat-bubble.assistant .chat-next-list li {
         margin: 0.2rem 0;
       }
+      .chat-bubble.assistant .chat-clarify-heading {
+        color: #334155;
+        font-size: 0.82rem;
+        margin-top: 0.55rem;
+      }
+      .chat-bubble.assistant .chat-clarify-list {
+        margin: 0.2rem 0 0;
+        padding-left: 1.2rem;
+        font-size: 0.86rem;
+        line-height: 1.45;
+        list-style: disc;
+      }
+      .chat-bubble.assistant .chat-clarify-list li {
+        margin: 0.2rem 0;
+      }
       .chat-contrast-details {
         margin-top: 0.55rem;
         padding: 0.35rem 0.5rem;
@@ -2225,6 +2240,19 @@
           });
           main.appendChild(ol);
         }
+        if (!isDemoOneTurnByStrategy()) {
+          const clarify = Array.isArray(llm.questions_to_clarify) ? llm.questions_to_clarify : [];
+          const clarifyLines = clarify.map((q) => String(q || "").trim()).filter(Boolean);
+          if (clarifyLines.length) {
+            const ch = el("p", "chat-line chat-clarify-heading", "Clarifying questions");
+            ch.style.fontWeight = "600";
+            main.appendChild(ch);
+            const ulq = document.createElement("ul");
+            ulq.className = "chat-clarify-list";
+            clarifyLines.forEach((t) => ulq.appendChild(el("li", "", t)));
+            main.appendChild(ulq);
+          }
+        }
         const contrast = Array.isArray(llm.healthcare_system_contrast) ? llm.healthcare_system_contrast : [];
         if (contrast.length) {
           const det = document.createElement("details");
@@ -2256,6 +2284,13 @@
           if (data.llm.summary_for_traveler) bits.push(String(data.llm.summary_for_traveler));
           if (Array.isArray(data.llm.what_to_do_next) && data.llm.what_to_do_next.length) {
             bits.push(data.llm.what_to_do_next.map((s, i) => `${i + 1}. ${s}`).join("\n"));
+          }
+          if (!isDemoOneTurnByStrategy()) {
+            const clarify = Array.isArray(data.llm.questions_to_clarify) ? data.llm.questions_to_clarify : [];
+            const lines = clarify.map((q) => String(q || "").trim()).filter(Boolean);
+            if (lines.length) {
+              bits.push("Clarifying questions:\n" + lines.map((s, i) => `${i + 1}. ${s}`).join("\n"));
+            }
           }
           if (Array.isArray(data.llm.healthcare_system_contrast) && data.llm.healthcare_system_contrast.length) {
             bits.push(
